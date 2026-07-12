@@ -1,11 +1,12 @@
 import db from './db.js';
-
-const AE_BASE_URL = process.env.MOCK_AE_BASE_URL || 'http://localhost:4001';
+import { normalizeAddress, AddressValidationError } from './addressNormalizer.js';
+import { placeOrder as aePlaceOrder } from './aeClient/index.js';
+import { TransientError, PermanentError } from './aeClient/errors.js';
 
 /**
  * Handles one Shopify order payload: places the matching order with
- * "AliExpress" (the mock), and records the outcome. Designed to be safe
- * to call more than once for the same order (idempotent).
+ * AliExpress (mock or real, depending on AE_MODE), and records the outcome.
+ * Designed to be safe to call more than once for the same order (idempotent).
  */
 export async function processOrder(shopifyOrderPayload) {
   const shopifyOrderId = String(shopifyOrderPayload.id);
@@ -30,55 +31,59 @@ export async function processOrder(shopifyOrderPayload) {
     }
   }
 
-  const body = {
-    shopify_order_id: shopifyOrderId,
-    line_items: shopifyOrderPayload.line_items,
-    address: shopifyOrderPayload.shipping_address,
-    // The mock reads this to let YOU control what happens — a real
-    // AliExpress order obviously wouldn't take this parameter. It's only
-    // here so you can rehearse each failure mode on demand while testing.
-    simulate: shopifyOrderPayload.simulate || 'success',
-  };
-
-  let response;
+  // --- Normalize the address BEFORE calling the supplier ---
+  // Catching a structurally bad address here (missing province_code, no
+  // name at all, etc.) is strictly better than finding out from a 422
+  // after a network round-trip — and it's the same "don't retry" failure
+  // mode either way, so we treat it identically to a supplier rejection.
+  let normalizedAddress;
   try {
-    // A real third-party API can hang. Never let one slow supplier stall
-    // your whole worker — always set an explicit timeout.
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    response = await fetch(`${AE_BASE_URL}/mock-ae/order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
+    normalizedAddress = normalizeAddress(shopifyOrderPayload.shipping_address);
   } catch (err) {
-    // Network error or timeout — this IS worth retrying, so we rethrow
-    // and let the queue's retry/backoff handle it.
-    db.prepare(
-      'UPDATE orders SET retry_count = retry_count + 1, last_error = ?, updated_at = datetime(\'now\') WHERE shopify_order_id = ?'
-    ).run(`transport error: ${err.message}`, shopifyOrderId);
+    if (err instanceof AddressValidationError) {
+      db.prepare(
+        "UPDATE orders SET status = 'failed', last_error = ?, updated_at = datetime('now') WHERE shopify_order_id = ?"
+      ).run(`address validation: ${err.message}`, shopifyOrderId);
+      console.warn(`[worker] order ${shopifyOrderId} failed address validation: ${err.message}`);
+      return; // handled outcome, not a queue failure — don't rethrow
+    }
     throw err;
   }
 
-  if (response.status === 201) {
-    const data = await response.json();
+  try {
+    const { aeOrderId } = await aePlaceOrder({
+      shopifyOrderId,
+      lineItems: shopifyOrderPayload.line_items,
+      address: normalizedAddress,
+      // Only meaningful in mock mode — lets you rehearse failure modes on
+      // demand. The real client ignores this field entirely.
+      simulate: shopifyOrderPayload.simulate || 'success',
+    });
+
     db.prepare(
       'UPDATE orders SET ae_order_id = ?, status = ?, updated_at = datetime(\'now\') WHERE shopify_order_id = ?'
-    ).run(data.ae_order_id, 'processing', shopifyOrderId);
-    console.log(`[worker] placed AE order ${data.ae_order_id} for Shopify order ${shopifyOrderId}`);
-    return;
-  }
+    ).run(aeOrderId, 'processing', shopifyOrderId);
+    console.log(`[worker] placed AE order ${aeOrderId} for Shopify order ${shopifyOrderId}`);
+  } catch (err) {
+    if (err instanceof TransientError) {
+      // Worth retrying — rethrow and let the queue's retry/backoff handle it.
+      db.prepare(
+        'UPDATE orders SET retry_count = retry_count + 1, last_error = ?, updated_at = datetime(\'now\') WHERE shopify_order_id = ?'
+      ).run(err.message, shopifyOrderId);
+      throw err;
+    }
 
-  // --- Deliberate non-retry path ---
-  // Out-of-stock / bad-address responses are not transient — retrying
-  // automatically just repeats the same failure and can confuse state.
-  // These get flagged for a human instead of silently retried.
-  const errorBody = await response.json().catch(() => ({}));
-  db.prepare(
-    'UPDATE orders SET status = ?, last_error = ?, updated_at = datetime(\'now\') WHERE shopify_order_id = ?'
-  ).run('failed', errorBody.error || `HTTP ${response.status}`, shopifyOrderId);
-  console.warn(`[worker] order ${shopifyOrderId} failed permanently: ${errorBody.error}`);
-  // No throw here — this is a "handled" outcome, not a queue failure.
+    if (err instanceof PermanentError) {
+      // Out-of-stock / bad-address / rejected-order responses are not
+      // transient — retrying automatically just repeats the same failure.
+      // Flagged for a human instead of silently retried.
+      db.prepare(
+        "UPDATE orders SET status = 'failed', last_error = ?, updated_at = datetime('now') WHERE shopify_order_id = ?"
+      ).run(err.message, shopifyOrderId);
+      console.warn(`[worker] order ${shopifyOrderId} failed permanently: ${err.message}`);
+      return; // handled outcome, not a queue failure
+    }
+
+    throw err; // unexpected error shape — surface it rather than swallow it
+  }
 }

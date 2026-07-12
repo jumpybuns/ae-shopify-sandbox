@@ -1,6 +1,6 @@
 import db from './db.js';
+import { getOrderStatus } from './aeClient/index.js';
 
-const AE_BASE_URL = process.env.MOCK_AE_BASE_URL || 'http://localhost:4001';
 const POLL_INTERVAL_MS = 5000; // real system: 15-30 min. Fast here so you can watch it work.
 
 async function pushFulfillmentToShopify(shopifyOrderId, trackingNumber) {
@@ -35,18 +35,19 @@ async function pollOnce() {
 
   for (const order of processingOrders) {
     try {
-      const res = await fetch(`${AE_BASE_URL}/mock-ae/order/${order.ae_order_id}/status`);
-      if (!res.ok) continue;
-      const data = await res.json();
+      const { status, trackingNumber } = await getOrderStatus(order.ae_order_id);
 
-      if (data.status === 'shipped') {
+      if (status === 'shipped') {
         db.prepare(
           "UPDATE orders SET status = 'shipped', updated_at = datetime('now') WHERE shopify_order_id = ?"
         ).run(order.shopify_order_id);
-        console.log(`[poller] order ${order.shopify_order_id} shipped, tracking ${data.tracking_number}`);
-        await pushFulfillmentToShopify(order.shopify_order_id, data.tracking_number);
+        console.log(`[poller] order ${order.shopify_order_id} shipped, tracking ${trackingNumber}`);
+        await pushFulfillmentToShopify(order.shopify_order_id, trackingNumber);
       }
     } catch (err) {
+      // Transient errors here are fine to just log and retry on the next
+      // poll cycle — no need to update order state for a single failed
+      // status check.
       console.error(`[poller] error checking order ${order.shopify_order_id}:`, err.message);
     }
   }

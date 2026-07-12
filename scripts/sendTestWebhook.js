@@ -24,12 +24,26 @@ function buildPayload(orderId) {
     line_items: [
       { ae_sku_id: 'AE-PEDAL-001', title: 'Fuzz Pedal Clone', quantity: 1 },
     ],
+    // Shape matches a REAL Shopify orders/create payload (confirmed against
+    // a live dev-store test order) — name/code pairs for province and
+    // country, first/last name split out separately, and nullable fields
+    // that really do come back null rather than omitted.
     shipping_address: {
-      address1: '123 Main St',
-      city: 'Vancouver',
-      province: 'WA',
-      zip: '98660',
-      country: 'US',
+      first_name: 'Ethan',
+      last_name: 'Pierce',
+      name: 'Ethan Pierce',
+      address1: '6935 SE 66th Ave',
+      address2: null,
+      company: null,
+      city: 'PORTLAND',
+      province: 'Oregon',
+      province_code: 'OR',
+      country: 'United States',
+      country_code: 'US',
+      zip: '97206',
+      phone: null,
+      latitude: 45.4723298,
+      longitude: -122.5954729,
     },
   };
 }
