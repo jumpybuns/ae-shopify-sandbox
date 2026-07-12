@@ -106,13 +106,17 @@ against Shopify's actual webhook delivery, retries, and address formats."
    gap is exactly what would trip up AliExpress's stricter address schema
    in production, and it's worth seeing with your own eyes before you're
    debugging it against real orders.
-6. **Fulfillment push-back.** Once you're ready, get an Admin API access
-   token (Partner Dashboard → your app → API credentials) and set
-   `SHOPIFY_STORE_DOMAIN` / `SHOPIFY_ADMIN_ACCESS_TOKEN` in `.env`. The
-   `fulfillmentPoller.js` file has the GraphQL mutation stubbed — you'll
-   need to add the `fulfillmentOrders` lookup step (documented in the code
-   comment) since `fulfillmentCreateV2` needs a fulfillment order ID, not
-   just the order ID.
+6. **Fulfillment push-back.** Get an Admin API access token (Partner
+   Dashboard → your app → API credentials, or from a custom app installed
+   on the dev store) and set `SHOPIFY_STORE_DOMAIN` /
+   `SHOPIFY_ADMIN_ACCESS_TOKEN` in `.env`. The poller will then look up the
+   order's open fulfillment order and call `fulfillmentCreate` with the
+   tracking number automatically — no more code needed, just credentials.
+   **Required scope:** your app needs a fulfillment-order access scope
+   (`write_merchant_managed_fulfillment_orders` covers most dropshipping
+   setups) or the `order.fulfillmentOrders` lookup will silently come back
+   empty — this is a known rough edge in Shopify's own API, not a bug in
+   the query.
 
 ## File map
 

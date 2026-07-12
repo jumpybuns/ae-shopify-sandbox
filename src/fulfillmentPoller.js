@@ -1,5 +1,6 @@
 import db from './db.js';
 import { getOrderStatus } from './aeClient/index.js';
+import { getOpenFulfillmentOrderId, createFulfillment } from './shopifyAdminClient.js';
 
 const POLL_INTERVAL_MS = 5000; // real system: 15-30 min. Fast here so you can watch it work.
 
@@ -14,20 +15,20 @@ async function pushFulfillmentToShopify(shopifyOrderId, trackingNumber) {
     return;
   }
 
-  // Real call — wire this up once you have a dev store + Admin API token.
-  // Note: fulfillmentCreate needs a fulfillment_order_id, which you'd fetch
-  // via the order's fulfillmentOrders field first. Left as the next step
-  // once you're pointing this at a live store.
-  const query = `
-    mutation fulfillmentCreate($input: FulfillmentInput!) {
-      fulfillmentCreateV2(fulfillment: $input) {
-        fulfillment { id status }
-        userErrors { field message }
-      }
-    }
-  `;
-  console.log(`[poller] would call Shopify Admin API for ${shopifyOrderId} with tracking ${trackingNumber}`);
-  console.log('[poller] (query prepared, not sent — fill in fulfillment_order_id lookup first)', query.slice(0, 40));
+  try {
+    const fulfillmentOrderId = await getOpenFulfillmentOrderId(shopifyOrderId);
+    const fulfillment = await createFulfillment(fulfillmentOrderId, { trackingNumber });
+    console.log(
+      `[poller] Shopify order ${shopifyOrderId} fulfilled — fulfillment ${fulfillment.id}, status ${fulfillment.status}`
+    );
+  } catch (err) {
+    // Deliberately NOT rethrown — a failed fulfillment push shouldn't undo
+    // the fact that the supplier already shipped it. This should surface
+    // somewhere a human will see it (log aggregation, alerting) rather
+    // than silently retry forever, since the same query error will likely
+    // repeat identically on every poll cycle otherwise.
+    console.error(`[poller] failed to push fulfillment for order ${shopifyOrderId}:`, err.message);
+  }
 }
 
 async function pollOnce() {
