@@ -57,12 +57,6 @@ async function buildSystemParams(method) {
 async function callApi(method, businessParams) {
   const systemParams = await buildSystemParams(method);
   const allParams = { ...systemParams, ...businessParams };
-  // NOT prepending apiPath here, unlike the system/auth endpoints in
-  // aeAuth.js. Tested directly: adding apiPath='/sync' caused a working
-  // method (aliexpress.ds.trade.order.get) to fail with IncompleteSignature,
-  // where it previously got past signature validation fine (failing later,
-  // on InvalidApiPath, for an unrelated reason — a bad method name). So for
-  // this method-routed gateway, the signed message must NOT include a path.
   const sign = signRequest(allParams, process.env.AE_APP_SECRET, systemParams.sign_method);
   const body = new URLSearchParams({ ...allParams, sign });
 
@@ -187,31 +181,153 @@ export async function placeOrder({ shopifyOrderId, lineItems, address }) {
 }
 
 export async function getOrderStatus(aeOrderId) {
-  // CONFIRMED against a real call: 'aliexpress.ds.order.get' (the previous
-  // guess) doesn't exist and fails with InvalidApiPath before signature is
-  // even checked. 'aliexpress.ds.trade.order.get' is a real, documented
-  // dropshipper method that takes a flat order_id param (matching what this
-  // function already sends) and returned a real envelope on a live call.
-  const method = process.env.AE_ORDER_STATUS_METHOD || 'aliexpress.ds.trade.order.get';
+  // CONFIRMED against ae_sdk's shipped TypeScript definitions
+  // (DS_Get_Order_Params / DS_Get_Order_Result in its dist/index.d.ts) —
+  // this replaces the earlier placeholder, which used the wrong method
+  // name (aliexpress.ds.order.get) and got a live InvalidApiPath error.
+  // The real method has an extra "trade." segment.
+  const method = process.env.AE_ORDER_STATUS_METHOD || 'aliexpress.trade.ds.order.get';
   const data = await callApi(method, { order_id: aeOrderId });
 
-  // Envelope key follows AliExpress's method-name convention (dots become
-  // underscores, "_response" appended) — same convention placeOrder relies
-  // on, but derived from the actual method here since AE_ORDER_STATUS_METHOD
-  // is overridable and a hardcoded key would silently break if it's changed.
-  const envelopeKey = `${method.replace(/\./g, '_')}_response`;
-  const envelope = data?.[envelopeKey] ?? {};
+  // Envelope name confirmed from the SDK's own type defs: ae_sdk's JS also
+  // defensively checks for an alternate spelling
+  // (aliexpress_ds_trade_order_get_response) that AliExpress sometimes
+  // returns instead — worth keeping in mind if this ever looks empty.
+  const envelope = data?.aliexpress_trade_ds_order_get_response
+    ?? data?.aliexpress_ds_trade_order_get_response;
+
+  if (!envelope) {
+    throw new PermanentError(
+      `unexpected response shape — no aliexpress_trade_ds_order_get_response: ${JSON.stringify(data)}`
+    );
+  }
+
+  // Same business-rejection pattern as placeOrder: rsp_code !== 200 inside
+  // an otherwise-200 HTTP response means AliExpress rejected the request
+  // itself (e.g. order not found), distinct from a transport/auth failure.
+  if (envelope.rsp_code && envelope.rsp_code !== 200 && envelope.rsp_code !== '200') {
+    throw new PermanentError(envelope.rsp_msg || 'AliExpress rejected the order status request', envelope.rsp_code);
+  }
+
   const result = envelope.result ?? {};
 
-  // Field names per AliExpress's documented aliexpress.ds.trade.order.get
-  // response shape: result.order_status / result.logistics_status, and a
-  // logistics_info_list array (first entry's logistics_no) rather than a
-  // single tracking_number/logistics_no field.
-  const logisticsInfo = result.logistics_info_list?.ae_order_logistics_info?.[0]
-    ?? result.logistics_info_list?.[0];
+  // Confirmed field names: order_status / logistics_status are both on the
+  // result directly; the tracking number lives one level down, inside
+  // logistics_info_list[].logistics_no (there can be more than one
+  // logistics record per order — this takes the first).
+  return {
+    status: result.logistics_status || result.order_status || 'unknown',
+    trackingNumber: result.logistics_info_list?.[0]?.logistics_no || null,
+  };
+}
+
+export async function getProductDetails(aeProductId) {
+  // CONFIRMED method + param/response shape against ae_sdk's shipped
+  // TypeScript definitions (DS_Product_Params / DS_Product_Result in its
+  // dist/index.d.ts) — same evidence-based approach as getOrderStatus.
+  const method = process.env.AE_PRODUCT_DETAILS_METHOD || 'aliexpress.ds.product.get';
+  const data = await callApi(method, {
+    product_id: aeProductId,
+    ship_to_country: process.env.AE_SHIP_TO_COUNTRY || 'US',
+  });
+
+  const envelope = data?.aliexpress_ds_product_get_response;
+
+  if (!envelope) {
+    throw new PermanentError(
+      `unexpected response shape — no aliexpress_ds_product_get_response: ${JSON.stringify(data)}`
+    );
+  }
+
+  if (envelope.rsp_code && envelope.rsp_code !== 200 && envelope.rsp_code !== '200') {
+    throw new PermanentError(envelope.rsp_msg || 'AliExpress rejected the product details request', envelope.rsp_code);
+  }
+
+  const result = envelope.result ?? {};
+
+  // Escape hatch for the next shape surprise — run with AE_DEBUG=1 to see
+  // exactly what AliExpress actually sent back, rather than guessing again.
+  if (process.env.AE_DEBUG) {
+    console.log('[getProductDetails] raw result:', JSON.stringify(result, null, 2));
+  }
+
+  const baseInfo = result.ae_item_base_info_dto ?? {};
+  const multimedia = result.ae_multimedia_info_dto ?? {};
+
+  // AliExpress's raw response wraps list fields TOP-protocol style — NOT
+  // as a bare array, but as an object keyed by a singular field name, e.g.
+  // { ae_item_sku_info_d_t_o: [...] } (and collapsed to a single plain
+  // object, not even wrapped in an array, when there's exactly one item).
+  // This unwrapping logic is lifted directly from ae_sdk's own
+  // extractNestedArray() helper (dist/index.mjs) — confirmed real, not a
+  // guess, since that's exactly what caused the first live test to fail
+  // with "skuList.map is not a function": the earlier version of this
+  // function assumed a bare array.
+  function extractNestedArray(obj, nestedKey) {
+    if (!obj) return [];
+    if (nestedKey in obj && obj[nestedKey]) {
+      return Array.isArray(obj[nestedKey]) ? obj[nestedKey] : [obj[nestedKey]].filter(Boolean);
+    }
+    return [];
+  }
+
+  const skuList = extractNestedArray(result.ae_item_sku_info_dtos, 'ae_item_sku_info_d_t_o');
+
+  // image_urls is documented as a single string of multiple URLs.
+  // AliExpress's long-standing TOP-protocol convention for this field is
+  // semicolon-separated — NOT confirmed against a live response yet, so
+  // double check the first real import against what actually comes back
+  // before trusting this blindly.
+  const images = (multimedia.image_urls || '')
+    .split(';')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const variants = skuList.map((sku) => {
+    // CORRECTED after the first live import: sku_attr IS returned as a
+    // literal field directly on each sku object — the construct-from-
+    // properties logic below was an unnecessary guess that happened to
+    // match. Prefer the literal field; fall back to reconstruction only
+    // if a future response is ever missing it.
+    const props = extractNestedArray(sku.aeop_s_k_u_propertys ?? sku.ae_sku_property_dtos, 'ae_sku_property_d_t_o');
+    const skuAttr = sku.sku_attr || props
+      .map((p) => `${p.sku_property_id}:${p.property_value_id}`)
+      .join(';');
+
+    // PRICING DECISION, not a settled fact — worth your explicit review.
+    // The real response has two very different numbers per variant, e.g.
+    // sku_price "167.44" vs offer_sale_price "72.00" (and consistently
+    // ~40-55% apart on the second variant too). That pattern — a
+    // consistently higher "list" number next to a consistently lower
+    // "offer" number — matches a crossed-out original price next to an
+    // active sale price, so this defaults to offer_sale_price as your
+    // actual cost basis. If that's wrong for your account/region, override
+    // via AE_PRICE_FIELD=sku_price in .env — don't let this default sit
+    // unverified against your first invoice.
+    const priceField = process.env.AE_PRICE_FIELD || 'offer_sale_price';
+    const price = sku[priceField] ?? sku.offer_sale_price ?? sku.sku_price;
+
+    return {
+      skuAttr,
+      price,
+      listPrice: sku.sku_price,
+      offerPrice: sku.offer_sale_price,
+      currencyCode: sku.currency_code,
+      // CORRECTED: the real field is sku_available_stock, not
+      // ipm_sku_stock (which doesn't appear anywhere in a live response —
+      // the first import silently reported 0 stock for everything because
+      // of this).
+      stock: sku.sku_available_stock ?? sku.s_k_u_available_stock ?? 0,
+      // Human-readable variant label built from the property names/values
+      // (e.g. "Color: Black"), for mapping to a Shopify option value.
+      label: props.map((p) => p.sku_property_value).join(' / ') || 'Default',
+    };
+  });
 
   return {
-    status: result.order_status || result.logistics_status || 'unknown',
-    trackingNumber: logisticsInfo?.logistics_no || null,
+    title: baseInfo.subject,
+    categoryId: baseInfo.category_id,
+    images,
+    variants,
   };
 }

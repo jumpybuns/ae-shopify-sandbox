@@ -2,6 +2,36 @@ import db from './db.js';
 import { normalizeAddress, AddressValidationError } from './addressNormalizer.js';
 import { placeOrder as aePlaceOrder } from './aeClient/index.js';
 import { TransientError, PermanentError } from './aeClient/errors.js';
+import { getAeMappingForVariant } from './shopifyAdminClient.js';
+
+/**
+ * A raw Shopify line item has product_id/variant_id/sku/title/quantity —
+ * none of which are aeProductId/aeSkuAttr. aliexpressClient.js's
+ * placeOrder() requires exactly those two fields per item (see
+ * assertMapped() there) and throws PermanentError/UNMAPPED_ITEM if either
+ * is missing. This is what actually supplies them: for each line item,
+ * look up the ae.product_id / ae.sku_attr metafields that
+ * scripts/importProduct.mjs writes when a product gets imported.
+ *
+ * Only called in real mode — the mock supplier doesn't validate a mapping
+ * at all, and requiring a live Shopify Admin token just to run the mock
+ * pipeline would be an unnecessary coupling.
+ */
+async function enrichLineItems(lineItems) {
+  const enriched = [];
+  for (const li of lineItems) {
+    const mapping = await getAeMappingForVariant(li.variant_id);
+    enriched.push({
+      ...li,
+      // Left undefined (not defaulted to a placeholder) when unmapped —
+      // assertMapped() in aliexpressClient.js is what should catch this
+      // and reject it as PermanentError/UNMAPPED_ITEM, not this function.
+      aeProductId: mapping?.aeProductId,
+      aeSkuAttr: mapping?.aeSkuAttr,
+    });
+  }
+  return enriched;
+}
 
 /**
  * Handles one Shopify order payload: places the matching order with
@@ -51,9 +81,18 @@ export async function processOrder(shopifyOrderPayload) {
   }
 
   try {
+    // In mock mode, pass raw Shopify line items through unchanged — the
+    // mock supplier doesn't need or check an AE mapping. In real mode,
+    // enrich each item with its aeProductId/aeSkuAttr first (see
+    // enrichLineItems above) so assertMapped() in aliexpressClient.js has
+    // what it needs instead of failing every single real order.
+    const lineItems = process.env.AE_MODE === 'real'
+      ? await enrichLineItems(shopifyOrderPayload.line_items)
+      : shopifyOrderPayload.line_items;
+
     const { aeOrderId } = await aePlaceOrder({
       shopifyOrderId,
-      lineItems: shopifyOrderPayload.line_items,
+      lineItems,
       address: normalizedAddress,
       // Only meaningful in mock mode — lets you rehearse failure modes on
       // demand. The real client ignores this field entirely.
