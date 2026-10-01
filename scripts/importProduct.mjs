@@ -10,9 +10,10 @@
 // What it does:
 //   1. Fetches real product data from AliExpress (aliexpress.ds.product.get)
 //   2. Creates the Shopify product + variants via productSet
-//   3. Writes two metafields via metafieldsSet:
-//        - Product-level:  ae.product_id  = the AliExpress product id
-//        - Variant-level:  ae.sku_attr    = that variant's AE sku_attr string
+//   3. Writes two metafields via metafieldsSet (namespace must be >= 3
+//      chars, hence "ae_sync" rather than "ae"):
+//        - Product-level:  ae_sync.product_id  = the AliExpress product id
+//        - Variant-level:  ae_sync.sku_attr    = that variant's AE sku_attr string
 //      orderWorker.js reads these back (via shopifyAdminClient's
 //      getAeMappingForVariant) to know what to actually order from
 //      AliExpress when a Shopify order comes in.
@@ -76,7 +77,7 @@ console.log(`[importProduct] created ${shopifyProduct.id}`);
 const metafieldEntries = [
   {
     ownerId: shopifyProduct.id,
-    namespace: 'ae',
+    namespace: 'ae_sync',
     key: 'product_id',
     type: 'single_line_text_field',
     value: String(aeProductId),
@@ -93,7 +94,7 @@ shopifyProduct.variants.nodes.forEach((shopifyVariant, i) => {
   if (!aeVariant) return;
   metafieldEntries.push({
     ownerId: shopifyVariant.id,
-    namespace: 'ae',
+    namespace: 'ae_sync',
     key: 'sku_attr',
     type: 'single_line_text_field',
     value: aeVariant.skuAttr,

@@ -91,7 +91,7 @@ async function getAccessToken() {
   return fetchNewToken();
 }
 
-async function graphqlRequest(query, variables) {
+export async function graphqlRequest(query, variables) {
   const { domain } = assertConfigured();
   const token = await getAccessToken();
 
@@ -295,7 +295,9 @@ export async function setMetafields(entries) {
  * before handing it to aeClient.placeOrder(), which requires both fields.
  *
  * namespace/key here MUST match what importProduct.mjs writes with
- * setMetafields() — "ae" / "product_id" and "ae" / "sku_attr".
+ * setMetafields() — "ae_sync" / "product_id" and "ae_sync" / "sku_attr".
+ * (Shopify requires metafield namespaces to be >= 3 characters, which is
+ * why this isn't just "ae".)
  */
 export async function getAeMappingForVariant(variantId) {
   const gid = `gid://shopify/ProductVariant/${variantId}`;
@@ -303,9 +305,9 @@ export async function getAeMappingForVariant(variantId) {
   const data = await graphqlRequest(
     `query GetAeMapping($id: ID!) {
       productVariant(id: $id) {
-        skuAttr: metafield(namespace: "ae", key: "sku_attr") { value }
+        skuAttr: metafield(namespace: "ae_sync", key: "sku_attr") { value }
         product {
-          productId: metafield(namespace: "ae", key: "product_id") { value }
+          productId: metafield(namespace: "ae_sync", key: "product_id") { value }
         }
       }
     }`,
