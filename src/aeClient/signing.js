@@ -17,9 +17,13 @@ import crypto from 'node:crypto';
  *     this one wasn't exercised against a doc example, but it's the
  *     documented legacy TOP convention.
  *   - System interfaces (path-routed calls like /auth/token/create or
- *     /auth/token/refresh, as opposed to method-routed /sync business
- *     calls) prepend their API path to the concatenated string BEFORE
- *     hashing. Pass it as `apiPath` for those; omit it for business calls.
+ *     /auth/token/refresh) need their request path prepended to the
+ *     concatenated string BEFORE hashing — confirmed: the token exchange
+ *     only succeeded once apiPath was added. Pass it as `apiPath` for those.
+ *   - The method-routed /sync business gateway (placeOrder, getOrderStatus)
+ *     must NOT get an apiPath — confirmed directly: adding one made an
+ *     otherwise-valid call (once the method name was fixed) fail with
+ *     IncompleteSignature. Omit apiPath for these calls.
  */
 export function signRequest(params, appSecret, signMethod = 'sha256', apiPath = '') {
   const sortedKeys = Object.keys(params)

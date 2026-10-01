@@ -57,6 +57,12 @@ async function buildSystemParams(method) {
 async function callApi(method, businessParams) {
   const systemParams = await buildSystemParams(method);
   const allParams = { ...systemParams, ...businessParams };
+  // NOT prepending apiPath here, unlike the system/auth endpoints in
+  // aeAuth.js. Tested directly: adding apiPath='/sync' caused a working
+  // method (aliexpress.ds.trade.order.get) to fail with IncompleteSignature,
+  // where it previously got past signature validation fine (failing later,
+  // on InvalidApiPath, for an unrelated reason — a bad method name). So for
+  // this method-routed gateway, the signed message must NOT include a path.
   const sign = signRequest(allParams, process.env.AE_APP_SECRET, systemParams.sign_method);
   const body = new URLSearchParams({ ...allParams, sign });
 
@@ -181,18 +187,31 @@ export async function placeOrder({ shopifyOrderId, lineItems, address }) {
 }
 
 export async function getOrderStatus(aeOrderId) {
-  // PLACEHOLDER — unlike placeOrder, no test evidence exists yet for this
-  // call's real shape. Method name/envelope follow the same naming
-  // convention as placeOrder for consistency, but CONFIRM both against a
-  // real response before relying on this.
-  const method = process.env.AE_ORDER_STATUS_METHOD || 'aliexpress.ds.order.get';
+  // CONFIRMED against a real call: 'aliexpress.ds.order.get' (the previous
+  // guess) doesn't exist and fails with InvalidApiPath before signature is
+  // even checked. 'aliexpress.ds.trade.order.get' is a real, documented
+  // dropshipper method that takes a flat order_id param (matching what this
+  // function already sends) and returned a real envelope on a live call.
+  const method = process.env.AE_ORDER_STATUS_METHOD || 'aliexpress.ds.trade.order.get';
   const data = await callApi(method, { order_id: aeOrderId });
 
-  const envelope = data?.aliexpress_ds_order_get_response ?? {};
+  // Envelope key follows AliExpress's method-name convention (dots become
+  // underscores, "_response" appended) — same convention placeOrder relies
+  // on, but derived from the actual method here since AE_ORDER_STATUS_METHOD
+  // is overridable and a hardcoded key would silently break if it's changed.
+  const envelopeKey = `${method.replace(/\./g, '_')}_response`;
+  const envelope = data?.[envelopeKey] ?? {};
   const result = envelope.result ?? {};
 
+  // Field names per AliExpress's documented aliexpress.ds.trade.order.get
+  // response shape: result.order_status / result.logistics_status, and a
+  // logistics_info_list array (first entry's logistics_no) rather than a
+  // single tracking_number/logistics_no field.
+  const logisticsInfo = result.logistics_info_list?.ae_order_logistics_info?.[0]
+    ?? result.logistics_info_list?.[0];
+
   return {
-    status: result.status || result.logistics_status || 'unknown',
-    trackingNumber: result.tracking_number || result.logistics_no || null,
+    status: result.order_status || result.logistics_status || 'unknown',
+    trackingNumber: logisticsInfo?.logistics_no || null,
   };
 }
