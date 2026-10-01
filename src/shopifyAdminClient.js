@@ -321,3 +321,19 @@ export async function getAeMappingForVariant(variantId) {
 
   return { aeProductId, aeSkuAttr };
 }
+
+/**
+ * Lists the store's fulfillment locations — one-off helper to find the
+ * value for SHOPIFY_LOCATION_ID in .env, which createOrUpdateProduct()
+ * needs for inventoryQuantities. Not used anywhere else in the pipeline.
+ */
+export async function listLocations() {
+  const data = await graphqlRequest(
+    `query ListLocations {
+      locations(first: 25) {
+        nodes { id name isActive }
+      }
+    }`
+  );
+  return data?.locations?.nodes || [];
+}
