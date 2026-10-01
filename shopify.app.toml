@@ -1,0 +1,19 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "5ba17950fbc2ba72934f6c3f353efd4a"
+application_url = "https://shopify.dev/apps/default-app-home"
+embedded = true
+name = "Ae Sync Services"
+
+[webhooks]
+api_version = "2026-10"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = ""
+
+[auth]
+redirect_urls = [ "https://shopify.dev/apps/default-app-home/api/auth" ]
+
+[build]
+automatically_update_urls_on_dev = true

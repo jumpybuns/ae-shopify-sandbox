@@ -47,6 +47,11 @@ async function callApi(method, businessParams) {
     clearTimeout(timeout);
   }
 
+  // 5xx and 429 are retryable at the HTTP layer.
+  if (response.status >= 500 || response.status === 429) {
+    throw new TransientError(`AE HTTP ${response.status}`);
+  }
+
   const data = await response.json().catch(() => {
     throw new TransientError('AliExpress returned a non-JSON response');
   });

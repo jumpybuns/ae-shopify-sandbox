@@ -3,26 +3,35 @@ import crypto from 'node:crypto';
 /**
  * AliExpress Open Platform request signing.
  *
- * AliExpress's Open Platform is a descendant of Taobao Open Platform (TOP),
- * and inherits its signing scheme: sort every request parameter (system +
- * business) alphabetically by key, concatenate as `key1value1key2value2...`
- * with no separators, wrap the secret on both ends, then hash.
+ * Verified directly against the worked examples in AliExpress's own API
+ * reference doc (both the "business interface" /sync case and the "system
+ * interface" /auth/token/create case) — these are no longer guesses:
  *
- * `sign_method` is issued per-app in your API console — it'll say either
- * `md5` or `hmac-sha256` (sha256 is the more common current default, which
- * is why it's the default here). CONFIRM which one your approved app
- * actually uses before going live; this is a one-line change either way.
+ *   - sha256 means HMAC-SHA256 *keyed by the app secret*, over the sorted,
+ *     concatenated params. The secret is the HMAC key, NOT wrapped into the
+ *     message itself. (The previous version of this function wrapped the
+ *     secret into the message AND used it as the HMAC key — double-counting
+ *     it — which produces a signature AliExpress's servers reject.)
+ *   - md5 is the older TOP-style scheme: plain MD5 of secret+message+secret,
+ *     with the secret wrapped on both ends (no HMAC key) — kept as-is since
+ *     this one wasn't exercised against a doc example, but it's the
+ *     documented legacy TOP convention.
+ *   - System interfaces (path-routed calls like /auth/token/create or
+ *     /auth/token/refresh, as opposed to method-routed /sync business
+ *     calls) prepend their API path to the concatenated string BEFORE
+ *     hashing. Pass it as `apiPath` for those; omit it for business calls.
  */
-export function signRequest(params, appSecret, signMethod = 'sha256') {
+export function signRequest(params, appSecret, signMethod = 'sha256', apiPath = '') {
   const sortedKeys = Object.keys(params)
     .filter((k) => params[k] !== undefined && params[k] !== null && k !== 'sign')
     .sort();
 
   const concatenated = sortedKeys.map((k) => `${k}${params[k]}`).join('');
-  const base = `${appSecret}${concatenated}${appSecret}`;
+  const message = `${apiPath}${concatenated}`;
 
   if (signMethod === 'md5') {
-    return crypto.createHash('md5').update(base, 'utf8').digest('hex').toUpperCase();
+    const wrapped = `${appSecret}${message}${appSecret}`;
+    return crypto.createHash('md5').update(wrapped, 'utf8').digest('hex').toUpperCase();
   }
-  return crypto.createHmac('sha256', appSecret).update(base, 'utf8').digest('hex').toUpperCase();
+  return crypto.createHmac('sha256', appSecret).update(message, 'utf8').digest('hex').toUpperCase();
 }
