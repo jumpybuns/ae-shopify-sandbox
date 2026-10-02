@@ -86,9 +86,9 @@ const metafieldEntries = [
 
 // Match each returned Shopify variant back to the AE variant it came from,
 // by position — productSet returns variants in the same order they were
-// submitted in (not independently confirmed for this exact mutation, but
-// it's the order the GraphQL API has consistently returned lists for
-// elsewhere; worth a spot-check after your first import by comparing SKUs).
+// submitted in. CONFIRMED via scripts/verifyMapping.mjs against a real
+// 2-variant import (SKY BLUE -> sku_attr "14:1254...", black -> "14:193...",
+// in the submitted order) — safe to rely on.
 shopifyProduct.variants.nodes.forEach((shopifyVariant, i) => {
   const aeVariant = aeProduct.variants[i];
   if (!aeVariant) return;
