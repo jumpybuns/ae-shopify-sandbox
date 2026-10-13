@@ -1,108 +1,68 @@
 // scripts/importProduct.mjs
 //
-// Pulls one AliExpress product into Shopify as a DRAFT product (not
-// published — review it before going live), and stamps it with the AE
-// mapping metafields the order side needs.
+// Imports ONE AliExpress product into Shopify as a DRAFT product (not
+// published; review it before going live), stamped with the AE mapping
+// metafields the order side needs. For many products at once, use
+// scripts/importCatalog.mjs instead; both share src/catalogImporter.js, so
+// they apply exactly the same checks.
 //
 // Usage:
-//   node scripts/importProduct.mjs <aliexpress-product-id>
+//   node scripts/importProduct.mjs <product-id-or-url> [--brand "Mooer"] [--dry-run] [--force]
 //
-// What it does:
-//   1. Fetches real product data from AliExpress (aliexpress.ds.product.get)
-//   2. Creates the Shopify product + variants via productSet
-//   3. Writes two metafields via metafieldsSet (namespace must be >= 3
-//      chars, hence "ae_sync" rather than "ae"):
-//        - Product-level:  ae_sync.product_id  = the AliExpress product id
-//        - Variant-level:  ae_sync.sku_attr    = that variant's AE sku_attr string
-//      orderWorker.js reads these back (via shopifyAdminClient's
-//      getAeMappingForVariant) to know what to actually order from
-//      AliExpress when a Shopify order comes in.
+//   --brand   only import if AliExpress's "Brand Name" matches
+//   --dry-run run every check, write nothing to Shopify
+//   --force   import even if the brand is missing or doesn't match
 //
-// NO PRICING MARKUP IS APPLIED. The Shopify price is set to the raw
-// AliExpress sku_price verbatim — that's a business decision only you
-// should make, not something to silently default. Edit the `markup`
-// constant below, or edit prices in Shopify afterward, before publishing.
+// Writes two metafields (namespace must be >= 3 chars, hence "ae_sync"):
+//   Product-level:  ae_sync.product_id  = the AliExpress product id
+//   Variant-level:  ae_sync.sku_attr    = that variant's AE sku_attr string
+// orderWorker.js reads these back (via getAeMappingForVariant) to know what
+// to order from AliExpress when a Shopify order comes in.
 //
-// NO CURRENCY CONVERSION either — if AliExpress returns a non-USD price
-// for your account/region, check currencyCode in the logged output below.
+// Re-running for a product that's already imported is safe: it is skipped,
+// not duplicated.
+//
+// NO PRICING MARKUP unless IMPORT_MARKUP is set (e.g. IMPORT_MARKUP=1.8), and
+// NO CURRENCY CONVERSION (a non-USD variant is skipped; see SHOP_CURRENCY).
 
 import 'dotenv/config';
-import { getProductDetails } from '../src/aeClient/aliexpressClient.js';
-import { createOrUpdateProduct, setMetafields } from '../src/shopifyAdminClient.js';
+import { importAeProduct, extractAeId } from '../src/catalogImporter.js';
 
-const aeProductId = process.argv[2];
+const argv = process.argv.slice(2);
+let target = null;
+const opts = { expectedBrand: null, dryRun: false, force: false };
+
+for (let i = 0; i < argv.length; i++) {
+  const a = argv[i];
+  if (a === '--brand') opts.expectedBrand = argv[++i];
+  else if (a === '--dry-run') opts.dryRun = true;
+  else if (a === '--force') opts.force = true;
+  else if (!target && !a.startsWith('--')) target = a;
+  else {
+    console.error(`Unknown argument: ${a}`);
+    process.exit(2);
+  }
+}
+
+const aeProductId = extractAeId(target);
 if (!aeProductId) {
-  console.error('Usage: node scripts/importProduct.mjs <aliexpress-product-id>');
-  process.exit(1);
+  console.error('Usage: node scripts/importProduct.mjs <product-id-or-url> [--brand "Mooer"] [--dry-run] [--force]');
+  process.exit(2);
+}
+if (!opts.dryRun && !process.env.SHOPIFY_LOCATION_ID) {
+  console.error('SHOPIFY_LOCATION_ID is not set in .env (run: node scripts/getLocationId.mjs). Use --dry-run to check without it.');
+  process.exit(2);
 }
 
-// Edit this if you want a markup applied automatically. 1.0 = no markup.
-const markup = 1.0;
+console.log(`[importProduct] ${opts.dryRun ? '(dry run) ' : ''}importing AliExpress product ${aeProductId}...`);
+const r = await importAeProduct(aeProductId, opts);
 
-console.log(`[importProduct] fetching AliExpress product ${aeProductId}...`);
-const aeProduct = await getProductDetails(aeProductId);
-
-console.log(`[importProduct] got "${aeProduct.title}" — ${aeProduct.variants.length} variant(s)`);
-for (const v of aeProduct.variants) {
-  console.log(`  - ${v.label}: ${v.currencyCode} ${v.price} (stock: ${v.stock}) sku_attr="${v.skuAttr}"`);
+if (r.title) console.log(`  title: ${r.title}`);
+if (r.brand !== undefined) console.log(`  brand: ${r.brand ?? '(none listed)'}   store: ${r.storeName ?? '?'}   variants: ${r.variantCount}`);
+console.log(`\n${r.status.toUpperCase()}: ${r.reason}`);
+if (r.shopifyId) console.log(`  Shopify product: ${r.shopifyId}`);
+if (r.status === 'created') {
+  console.log('  Review it in Shopify admin, set real pricing/description, then publish when ready.');
 }
 
-if (aeProduct.variants.some((v) => !v.skuAttr)) {
-  console.warn(
-    '\n⚠️  At least one variant has an empty sku_attr. This likely means the ' +
-    'property-list shape in the real response differs from what getProductDetails() ' +
-    'assumes (see the comment above its sku_attr construction). Check the raw ' +
-    'response before trusting this import — an empty sku_attr will cause ' +
-    'placeOrder to reject this variant with UNMAPPED_ITEM later.\n'
-  );
-}
-
-const shopifyProductInput = {
-  title: aeProduct.title,
-  images: aeProduct.images,
-  optionName: 'Style',
-  variants: aeProduct.variants.map((v, i) => ({
-    optionValue: v.label || `Variant ${i + 1}`,
-    price: (parseFloat(v.price) * markup).toFixed(2),
-    sku: `AE-${aeProductId}-${i}`,
-    inventoryQuantity: v.stock || 0,
-  })),
-};
-
-console.log('\n[importProduct] creating Shopify product (as DRAFT)...');
-const shopifyProduct = await createOrUpdateProduct(shopifyProductInput);
-console.log(`[importProduct] created ${shopifyProduct.id}`);
-
-// --- Write the AE mapping metafields ---
-const metafieldEntries = [
-  {
-    ownerId: shopifyProduct.id,
-    namespace: 'ae_sync',
-    key: 'product_id',
-    type: 'single_line_text_field',
-    value: String(aeProductId),
-  },
-];
-
-// Match each returned Shopify variant back to the AE variant it came from,
-// by position — productSet returns variants in the same order they were
-// submitted in. CONFIRMED via scripts/verifyMapping.mjs against a real
-// 2-variant import (SKY BLUE -> sku_attr "14:1254...", black -> "14:193...",
-// in the submitted order) — safe to rely on.
-shopifyProduct.variants.nodes.forEach((shopifyVariant, i) => {
-  const aeVariant = aeProduct.variants[i];
-  if (!aeVariant) return;
-  metafieldEntries.push({
-    ownerId: shopifyVariant.id,
-    namespace: 'ae_sync',
-    key: 'sku_attr',
-    type: 'single_line_text_field',
-    value: aeVariant.skuAttr,
-  });
-});
-
-console.log(`[importProduct] writing ${metafieldEntries.length} metafield(s)...`);
-await setMetafields(metafieldEntries);
-
-console.log(`\n✅ Imported as a DRAFT product: ${shopifyProduct.id}`);
-console.log('   Review it in Shopify admin, set real pricing/description, then publish when ready.');
+process.exit(r.status === 'failed' ? 1 : 0);

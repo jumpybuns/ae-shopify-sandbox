@@ -273,11 +273,8 @@ export async function getProductDetails(aeProductId) {
 
   const skuList = extractNestedArray(result.ae_item_sku_info_dtos, 'ae_item_sku_info_d_t_o');
 
-  // image_urls is documented as a single string of multiple URLs.
-  // AliExpress's long-standing TOP-protocol convention for this field is
-  // semicolon-separated — NOT confirmed against a live response yet, so
-  // double check the first real import against what actually comes back
-  // before trusting this blindly.
+  // image_urls is a single string of multiple URLs, semicolon-separated —
+  // CONFIRMED against a live response (6 URLs joined with ";").
   const images = (multimedia.image_urls || '')
     .split(';')
     .map((s) => s.trim())
@@ -324,9 +321,25 @@ export async function getProductDetails(aeProductId) {
     };
   });
 
+  // Brand and store, for the catalog importer's "is this really the brand I
+  // asked for" check. Both shapes are CONFIRMED against a live response:
+  // ae_item_properties is wrapped as { ae_item_property: [...] } with
+  // { attr_name: "Brand Name", attr_value: "M-VAVE" } entries, and
+  // ae_store_info is { store_id, store_name, store_country_code }. A product
+  // with no "Brand Name" property gets brand = null (not a guess).
+  const properties = extractNestedArray(result.ae_item_properties, 'ae_item_property');
+  const brandProp = properties.find((p) => String(p.attr_name || '').toLowerCase() === 'brand name');
+
   return {
+    // The id AliExpress itself reports for this product. Usually identical
+    // to the id you asked for, but the response also carries a
+    // product_id_converter_result (main vs. per-country ids), so callers
+    // that need a stable key should prefer this over their own input.
+    productId: baseInfo.product_id != null ? String(baseInfo.product_id) : String(aeProductId),
     title: baseInfo.subject,
     categoryId: baseInfo.category_id,
+    brand: brandProp?.attr_value ? String(brandProp.attr_value) : null,
+    storeName: result.ae_store_info?.store_name ?? null,
     images,
     variants,
   };

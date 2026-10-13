@@ -1,0 +1,194 @@
+{
+  "ranAt": "2026-10-13T00:28:32.631Z",
+  "flags": {
+    "dryRun": true,
+    "force": false,
+    "only": [],
+    "file": "catalog/catalog.txt",
+    "delay": 750
+  },
+  "results": [
+    {
+      "brandSection": "M-VAVE",
+      "line": 16,
+      "inputId": "3256812951317449",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212a745617918512882715877\",\"_trace_id_\":\"2151fca717918512882694165e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 31,
+      "inputId": "3256810564764069",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212a799017918512892705562\",\"_trace_id_\":\"2151fca717918512892694231e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 32,
+      "inputId": "3256807822824131",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"214125d717918512902381085\",\"_trace_id_\":\"2151fca717918512902364420e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 33,
+      "inputId": "3256805002049926",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"0bb4a80e17918512912025244\",\"_trace_id_\":\"2151fca717918512912014493e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 34,
+      "inputId": "3256812294431550",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"0bb4a36417918512921778004\",\"_trace_id_\":\"2151fca717918512921734540e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 35,
+      "inputId": "3256806419731566",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"0bb4a9a517918512931501905\",\"_trace_id_\":\"2151fca717918512931484629e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 36,
+      "inputId": "3256809966491469",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212a640e17918512941164913\",\"_trace_id_\":\"2151fca717918512941144647e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 37,
+      "inputId": "3256808979336794",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212a715417918512950838774\",\"_trace_id_\":\"2151fca717918512950814677e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 38,
+      "inputId": "3256808414918156",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212a799017918512960587198\",\"_trace_id_\":\"2151fca717918512960574768e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 39,
+      "inputId": "3256806803964769",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"214125d717918512970292734\",\"_trace_id_\":\"2151fca717918512970274862e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 40,
+      "inputId": "3256805273581284",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"2151e81a17918512979932794\",\"_trace_id_\":\"2151fca717918512979924947e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 41,
+      "inputId": "3256811814983842",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"0bb4a36417918512989581634\",\"_trace_id_\":\"2151fca717918512989565049e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 42,
+      "inputId": "3256807788208997",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"21410da317918512999238250\",\"_trace_id_\":\"2151fca717918512999225134e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 43,
+      "inputId": "3256806477778285",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212e59e617918513008902451\",\"_trace_id_\":\"2151fca717918513008895217e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 44,
+      "inputId": "3256806390949725",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"2151e81a17918513018573711\",\"_trace_id_\":\"2151fca717918513018555281e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 45,
+      "inputId": "3256807391172190",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"0b83fe6a17918513028258207\",\"_trace_id_\":\"2151fca717918513028235346e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 46,
+      "inputId": "3256805183794585",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212a73a517918513037937407\",\"_trace_id_\":\"2151fca717918513037915412e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 47,
+      "inputId": "3256805696437360",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"214125d717918513047624586\",\"_trace_id_\":\"2151fca717918513047605454e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 48,
+      "inputId": "3256805656226959",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"0b83c70d17918513057375530\",\"_trace_id_\":\"2151fca717918513057355481e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 49,
+      "inputId": "3256806012879813",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212a715417918513067033571\",\"_trace_id_\":\"2151fca717918513067015534e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 50,
+      "inputId": "3256808978252008",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"0bafcbae17918513076695808\",\"_trace_id_\":\"2151fca717918513076675621e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 51,
+      "inputId": "3256805656483560",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212a640e17918513086438394\",\"_trace_id_\":\"2151fca717918513086415669e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 52,
+      "inputId": "3256809465235716",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"212a745617918513096063004\",\"_trace_id_\":\"2151fca717918513096045720e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 53,
+      "inputId": "3256805925527992",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"21410da317918513105762764\",\"_trace_id_\":\"2151fca717918513105745771e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 54,
+      "inputId": "3256807863218177",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"2102ece217918513115411059\",\"_trace_id_\":\"2151fca717918513115405814e0c57\"}"
+    },
+    {
+      "brandSection": "LY-ROCK",
+      "line": 55,
+      "inputId": "3256807567246648",
+      "status": "failed",
+      "reason": "AE token response missing access_token/refresh_token — got: {\"code\":\"IllegalRefreshToken\",\"type\":\"ISP\",\"message\":\"The specified refresh token is invalid or expired\",\"request_id\":\"0bb4a80e17918513125102327\",\"_trace_id_\":\"2151fca717918513125085899e0c57\"}"
+    }
+  ]
+}

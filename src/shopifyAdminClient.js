@@ -213,7 +213,7 @@ export async function createOrUpdateProduct(product) {
       productSet(input: $input, synchronous: true) {
         product {
           id
-          variants(first: 50) {
+          variants(first: 250) {
             nodes {
               id
               sku
@@ -322,6 +322,61 @@ export async function getAeMappingForVariant(variantId) {
   }
 
   return { aeProductId, aeSkuAttr };
+}
+
+/**
+ * Finds a product this importer already created for a given AliExpress
+ * product id, so a re-run doesn't create a duplicate draft.
+ *
+ * Looks up by SKU, not by metafield: the importer builds variant SKUs as
+ * `AE-<aeProductId>-<index>`, so `AE-<id>-0` exists on every imported
+ * product, and Shopify's product search supports a `sku:` filter out of
+ * the box (a metafield search would need a metafield definition first).
+ *
+ * Returns null if nothing matches, otherwise:
+ *   { id, title, status, mappedAeId }
+ * where mappedAeId is the ae_sync.product_id metafield value, or null if
+ * the product has the SKU but no mapping (e.g. an early test import from
+ * before the metafield namespace fix) — callers should treat that as
+ * "exists but broken", not as a clean duplicate.
+ *
+ * Shopify's search index is eventually consistent: a product created a
+ * few seconds ago may not be searchable yet. Within one batch run the
+ * importer also tracks ids it already created, so that gap only matters
+ * if you kill a run and restart it immediately.
+ */
+export async function findProductByAeId(aeProductId) {
+  const data = await graphqlRequest(
+    `query FindByAeId($q: String!) {
+      products(first: 5, query: $q) {
+        nodes {
+          id
+          title
+          status
+          mapped: metafield(namespace: "ae_sync", key: "product_id") { value }
+          variants(first: 250) { nodes { sku } }
+        }
+      }
+    }`,
+    { q: `sku:AE-${aeProductId}-0` }
+  );
+
+  // Search tokenizes SKUs loosely, so confirm an exact SKU match, then
+  // prefer a product that carries the right mapping over one that doesn't
+  // (there can be several, e.g. leftover test imports).
+  const wantedSku = `AE-${aeProductId}-0`;
+  const matches = (data?.products?.nodes || []).filter((n) =>
+    (n.variants?.nodes || []).some((v) => v.sku === wantedSku)
+  );
+  if (!matches.length) return null;
+  const node = matches.find((n) => n.mapped?.value === String(aeProductId)) || matches[0];
+
+  return {
+    id: node.id,
+    title: node.title,
+    status: node.status,
+    mappedAeId: node.mapped?.value ?? null,
+  };
 }
 
 /**
