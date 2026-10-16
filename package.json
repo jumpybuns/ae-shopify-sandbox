@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "test-webhook": "node scripts/sendTestWebhook.js"
+    "test-webhook": "node scripts/sendTestWebhook.js",
+    "dev": "shopify theme dev --store=hifi-password.myshopify.com",
+    "push": "git push origin main"
   },
   "engines": {
     "node": ">=22.5.0"
