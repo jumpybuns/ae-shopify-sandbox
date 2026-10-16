@@ -150,7 +150,7 @@
           "filters",
           "multi-fx"
         ],
-        "layout_type": "editorial",
+        "layout_type": "bento",
         "carousel_on_mobile": true,
         "columns": 2,
         "mobile_columns": "2",
