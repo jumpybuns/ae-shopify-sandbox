@@ -1,0 +1,6 @@
+# This repo is a Horizon theme with a sidecar Node app.
+# shopify.app.toml would otherwise make Theme Check apply theme-app-extension
+# rules, which incorrectly forbid {% stylesheet %} in theme snippets/blocks.
+extends: theme-check:recommended
+ignore:
+  - node_modules/**
