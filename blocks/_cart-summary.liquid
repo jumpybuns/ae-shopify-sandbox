@@ -55,7 +55,9 @@
     }
   }
 
-  body:has(#header-group header-component[sticky]) .cart-summary__inner {
+  /* Header-dependent page rules use #header-group as the :has() subject and reach the page with `~`.
+     With body as the subject, every [open] or [aria-expanded] change in the header restyles the whole page. */
+  #header-group:has(> .header-section > header-component[sticky]) ~ * .cart-summary__inner {
     top: var(--header-height, 0);
   }
 
@@ -75,9 +77,9 @@
     height: 100%;
 
     @media screen and (min-width: 750px) {
-      border-right: none;
-      border-top-right-radius: 0;
-      border-bottom-right-radius: 0;
+      border-inline-end: none;
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
     }
   }
 
@@ -91,7 +93,6 @@
 
   .cart-summary--extend .cart-summary__inner {
     @media screen and (min-width: 750px) {
-      height: 100%;
       grid-row: 2 / -1;
       padding: var(--padding-md) var(--page-margin) var(--padding-4xl);
       width: var(--sidebar-width);

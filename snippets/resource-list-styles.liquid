@@ -79,6 +79,15 @@
     }
   }
 
+  /*
+   * Grid tracks floor at their items' min-content width, so a card whose child
+   * sets an aspect-ratio can push its item wider than its track and make the
+   * whole grid overflow the page.
+   */
+  .resource-list--grid .resource-list__item {
+    min-width: 0;
+  }
+
   .resource-list__item {
     height: 100%;
     color: var(--color-foreground);

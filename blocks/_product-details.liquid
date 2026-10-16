@@ -1,6 +1,10 @@
 
 
 {%- assign block_settings = block.settings -%}
+{%- if block_settings.height == 'fill' -%}
+  {% # `.full-height--desktop` consumes `--header-group-height` at first paint (stylesheet below) %}
+  {% render 'measure-header-heights', only_on_desktop: true %}
+{%- endif -%}
 <div
   id="ProductInformation-{{ section.id }}"
   class="

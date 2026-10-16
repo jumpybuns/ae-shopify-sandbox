@@ -18,6 +18,12 @@ const PRESERVED_ATTRIBUTES = [
   'data-current-checked',
   'data-previous-checked',
   'cart-summary-sticky',
+  // Live-only marker the client sets while a shopper is editing a quantity input. The
+  // server re-render never carries it, so without preserving it onto the new node here
+  // copyAttributes would strip it off the live node before syncFormControlState runs, and
+  // skipsValueUpdate (which needs both nodes to carry it) could never hold — the typed
+  // value would be overwritten mid-edit by a concurrent cart-items morph.
+  'data-skip-value-update',
 ];
 const PRESERVED_ATTRIBUTES_SET = new Set(PRESERVED_ATTRIBUTES);
 
@@ -231,8 +237,12 @@ function walk(newNode, oldNode, options) {
     // value/checked, option selected, textarea value). Replay that sync across the subtree, then
     // return the untouched DOM. Skipping also avoids updatedCallback on the subtree, which is
     // safe: it only rebuilds a component's refs from its own subtree, unchanged here.
-    // syncFormControlsInSubtree honors data-skip-node-update, so the guard below stays correct
-    // even though this fast path runs ahead of it.
+    // syncFormControlsInSubtree honors data-skip-node-update directly. data-skip-value-update
+    // is safe here for a different reason worth writing down: it is client-only, so a marked
+    // live node can never be isEqualNode-equal to the unmarked server node, and isEqualNode is
+    // deep, so no ancestor containing a marked control matches either. This path is therefore
+    // unreachable while an edit is in progress. If the marker ever became server-rendered, both
+    // nodes would carry it and the transitive guard in updateInput/updateTextarea would apply.
     if (oldNode.isEqualNode(newNode)) {
       syncFormControlsInSubtree(newEl, oldEl);
       return oldNode;
@@ -346,6 +356,34 @@ function skipsNodeUpdate(newNode, oldNode) {
 }
 
 /**
+ * True when both controls keep their live value during a morph but still accept fresh
+ * server attributes such as limits, disabled state, and cart line indexes.
+ *
+ * Marker presence alone is not enough, because the marker can outlive the edit it describes.
+ * The server renders this input disabled when a line can no longer be updated, and copying
+ * that disabled attribute onto a focused input blurs it, which ends the edit. The blur handler
+ * clears the marker, but onBeforeUpdate has already preserved it onto the incoming node by
+ * then, so the same copyAttributes pass writes it straight back onto the live node. Presence
+ * would therefore stay true forever and freeze the input against every later server render,
+ * which is the stale-value bug this opt-out exists to prevent.
+ *
+ * Live focus is the authoritative signal that an edit is still in progress, so require it on
+ * the live node and require the incoming node to still be editable. This also makes any other
+ * path that leaks the marker harmless rather than permanent.
+ * @param {Element} newNode
+ * @param {Element} oldNode
+ * @returns {boolean}
+ */
+function skipsValueUpdate(newNode, oldNode) {
+  return (
+    oldNode.matches(':focus') &&
+    !newNode.matches(':disabled') &&
+    newNode.hasAttribute('data-skip-value-update') &&
+    oldNode.hasAttribute('data-skip-value-update')
+  );
+}
+
+/**
  * Replays syncFormControlState across an element and its descendants. walk uses this when
  * isEqualNode reports a subtree unchanged: that comparison is blind to live form state, so a
  * dirty control (e.g. a quantity a shopper typed) would otherwise keep stale state after a
@@ -440,6 +478,12 @@ function copyAttributes(newNode, oldNode) {
       if (oldNode.getAttribute(attrName) === attrValue) continue;
     }
 
+    // An input whose dirty value flag is still false mirrors its value attribute into its
+    // value property, and focus plus select() does not set that flag. Writing the server's
+    // value attribute here would therefore change what a shopper sees mid-edit, before
+    // updateInput's gate ever runs. Checked only for the 'value' name to keep this loop cheap.
+    if (attrName === 'value' && skipsValueUpdate(newNode, oldNode)) continue;
+
     if (attrNamespaceURI) {
       const fromValue = oldNode.getAttributeNS(attrNamespaceURI, localName);
       if (fromValue !== attrValue) {
@@ -473,6 +517,9 @@ function copyAttributes(newNode, oldNode) {
         oldNode.removeAttributeNS(attrNamespaceURI, localName);
       }
     } else if (!newNode.hasAttribute(attrName)) {
+      // Same reasoning as the copy pass above: removing the value attribute from a control
+      // that is not dirty blanks what the shopper sees.
+      if (attrName === 'value' && skipsValueUpdate(newNode, oldNode)) continue;
       oldNode.removeAttribute(attrName);
     }
   }
@@ -486,6 +533,7 @@ function copyAttributes(newNode, oldNode) {
  */
 function updateInput(newNode, oldNode) {
   const newValue = newNode.value;
+  const shouldSkipValueUpdate = skipsValueUpdate(newNode, oldNode);
 
   updateAttribute(newNode, oldNode, 'checked');
   updateAttribute(newNode, oldNode, 'disabled');
@@ -498,19 +546,19 @@ function updateInput(newNode, oldNode) {
   // Skip file inputs since they can't be changed programmatically
   if (oldNode.type === 'file') return;
 
-  if (newValue !== oldNode.value) {
+  if (!shouldSkipValueUpdate && newValue !== oldNode.value) {
     oldNode.setAttribute('value', newValue);
     oldNode.value = newValue;
   }
 
-  if (newValue === 'null') {
+  if (!shouldSkipValueUpdate && newValue === 'null') {
     oldNode.value = '';
     oldNode.removeAttribute('value');
   }
 
-  if (!newNode.hasAttributeNS(null, 'value')) {
+  if (!shouldSkipValueUpdate && !newNode.hasAttributeNS(null, 'value')) {
     oldNode.removeAttribute('value');
-  } else if (oldNode.type === 'range') {
+  } else if (!shouldSkipValueUpdate && oldNode.type === 'range') {
     // Update range input UI
     oldNode.value = newValue;
   }

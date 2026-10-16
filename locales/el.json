@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "blocks": {
     "load_video": "Φόρτωση βίντεο: {{ description }}",
@@ -74,7 +83,8 @@
     "search_suggestions_available": "Διαθέσιμες προτάσεις αναζήτησης για «{{ query }}»",
     "price_filter_low": "Χαμηλή τιμή",
     "price_filter_high": "Υψηλή τιμή",
-    "view_disclosure_information_for_product": "Προβολή πληροφοριών γνωστοποίησης για {{ product_title }}"
+    "view_disclosure_information_for_product": "Προβολή πληροφοριών γνωστοποίησης για {{ product_title }}",
+    "show_submenu": "Εμφάνιση υπομενού {{ title }}"
   },
   "actions": {
     "add_to_cart": "Προσθήκη στο καλάθι",
@@ -116,7 +126,8 @@
     "show_all_options": "Εμφάνιση όλων των επιλογών",
     "open": "Σε εξέλιξη",
     "back_to": "Επιστροφή σε {{ title }}",
-    "zoom_media": "Μεγέθυνση πολυμέσου {{ index }}"
+    "zoom_media": "Μεγέθυνση πολυμέσου {{ index }}",
+    "back_to_main_menu": "Επιστροφή στο κύριο μενού"
   },
   "content": {
     "reviews": "κριτικές",
@@ -285,9 +296,9 @@
       "add_to_apple_wallet": "Προσθήκη στο Apple Wallet",
       "qr_image_alt": "Κωδικός QR — σαρώστε για να εξαργυρώσετε τη δωροκάρτα",
       "copy_code": "Αντιγραφή κωδικού δωροκάρτας",
-      "expiration_date": "Λήγει στις {{ expires_on }}",
       "copy_code_success": "Η αντιγραφή του κωδικού ήταν επιτυχής",
-      "expired": "Έληξε"
+      "expired": "Έληξε",
+      "expiration_date_html": "Λήγει στις <bdi>{{ expires_on }}</bdi>"
     }
   },
   "placeholders": {

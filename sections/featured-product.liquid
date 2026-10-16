@@ -14,6 +14,8 @@
 -%}
 {% render 'quick-add-styles' %}
 {% render 'quick-add-modal-styles' %}
+{% render 'swatch-styles' %}
+{% render 'quantity-selector-styles' %}
 {% render 'variant-picker-styles' %}
 {% render 'buy-buttons-styles' %}
 {% render 'product-badges-styles' %}
@@ -101,8 +103,7 @@
     .featured-product-section .product-card__content {
       --hugged-width: calc(var(--constrained-height) * var(--gallery-aspect-ratio, var(--media-preview-ratio)));
       width: min(100%, var(--hugged-width));
-      margin-left: auto;
-      margin-right: auto;
+      margin-inline: auto;
     }
   }
 {% endstylesheet %}
@@ -126,11 +127,11 @@
       "options": [
         {
           "value": "media-left",
-          "label": "t:options.left"
+          "label": "t:options.direction_start"
         },
         {
           "value": "media-right",
-          "label": "t:options.right"
+          "label": "t:options.direction_end"
         }
       ],
       "default": "media-left"

@@ -27,6 +27,11 @@
 {%- liquid
   assign selected_product = closest.product
   assign selected_variant_media = selected_product.selected_or_first_available_variant.featured_media
+
+  if block_settings.hide_variants and selected_variant_media == blank
+    assign selected_variant_media = selected_product.featured_media
+  endif
+
   assign first_3d_model = selected_product.media | where: 'media_type', 'model' | first
 
   if block_settings.hide_variants
@@ -79,6 +84,12 @@
     endif
   endif
 
+  # Carousel arrows are always visible, so they don't animate in on hover
+  assign animate_arrows = true
+  if media_presentation == 'carousel'
+    assign animate_arrows = false
+  endif
+
   if slideshow_controls_style == 'thumbnails'
     assign pagination_position = block_settings.thumbnail_position
   else
@@ -115,6 +126,8 @@
         assign sorted_media = sorted_media | concat: found_media
       endif
     endfor
+  elsif block_settings.hide_variants
+    assign sorted_media = '' | split: ','
   else
     assign sorted_media = selected_product.media
   endif
@@ -180,6 +193,11 @@
     src="{{ 'drag-zoom-wrapper.js' | asset_url }}"
     type="module"
   ></script>
+{%- endif -%}
+
+{%- if block_settings.constrain_to_viewport -%}
+  {% # `.constrain-height` consumes `--header-height` at first paint (product-media-container-styles.liquid) %}
+  {% render 'measure-header-heights', only_on_desktop: true %}
 {%- endif -%}
 
 {% style %}
@@ -441,6 +459,7 @@
       slide_count: sorted_media.size,
       slideshow_arrows: slideshow_arrows,
       arrows_position: icons_position,
+      animate_arrows: animate_arrows,
       controls: controls
     %}
 
@@ -637,6 +656,7 @@
   </media-gallery>
 {% endif %}
 
+{% render 'product-media-container-styles' %}
 {% render 'product-media-gallery-content-styles' %}
 
 {% stylesheet %}
@@ -646,6 +666,11 @@
     bottom: 0;
     display: flex;
     z-index: var(--layer-raised);
+
+    /* Container touches the physical viewport edges (viewport-fit=cover); keep the
+       thumbnails clear of the home indicator and side notch */
+    padding-block-end: var(--safe-area-inset-bottom);
+    padding-inline: var(--safe-area-inset-left) var(--safe-area-inset-right);
   }
 
   .dialog-thumbnails-list {
@@ -673,12 +698,20 @@
     .dialog-thumbnails-list {
       position: fixed;
       flex-direction: column;
-      inset: 50% var(--margin-lg) auto auto;
-      right: 0;
+      inset-block: 50% auto;
+      inset-inline: auto var(--margin-lg);
+
+      /* Keep the inline-end-anchored thumbnail rail clear of the side notch (viewport-fit=cover) */
+      inset-inline-end: var(--safe-area-inset-right);
       max-height: calc(100vh - 200px);
       overflow-y: auto;
       animation: thumbnailsSlideInTop var(--spring-d220-b0-duration) var(--spring-d220-b0-easing) forwards;
       animation-delay: calc(var(--spring-d220-b0-duration) * 0.5);
+    }
+
+    /* Safe-area env() values are physical; in RTL the rail sits by the left-side notch */
+    [dir='rtl'] .dialog-thumbnails-list {
+      inset-inline-end: var(--safe-area-inset-left);
     }
 
     .dialog--closed .dialog-thumbnails-list {
@@ -740,7 +773,14 @@
   .dialog-zoomed-gallery .shopify-model-viewer-ui__controls-area.shopify-model-viewer-ui__controls-area {
     /* Move the controls above the thumbnails. Need to calculate the height of the thumbnails list */
     bottom: calc(var(--thumbnail-width) / var(--media-preview-ratio) + var(--padding-lg) * 2);
-    right: var(--padding-lg);
+    inset-inline-end: var(--padding-lg);
+  }
+
+  /* The external model-viewer UI stylesheet positions the controls with a physical
+     right; inset-inline-end maps to left in RTL, so clear the stale right to stop
+     the auto-width controls being constrained on both sides */
+  [dir='rtl'] .dialog-zoomed-gallery .shopify-model-viewer-ui__controls-area.shopify-model-viewer-ui__controls-area {
+    right: auto; /* stylelint-disable-line csstools/use-logical -- clearing an external physical right in RTL */
   }
 
   @media screen and (min-width: 750px) {
@@ -748,8 +788,8 @@
       /* Move the controls up to match the padding on the thumbnails */
       bottom: var(--padding-lg);
 
-      /* Move the controls to the left of the thumbnails list on the right */
-      right: calc(var(--thumbnail-width) + var(--padding-lg) * 2);
+      /* Move the controls beside the inline-end thumbnails list */
+      inset-inline-end: calc(var(--thumbnail-width) + var(--padding-lg) * 2);
     }
   }
 
@@ -1026,6 +1066,12 @@
   .media-gallery--carousel slideshow-arrows .slideshow-control {
     padding-inline: 0 var(--padding-md);
     opacity: 1;
+  }
+
+  /* The end-side padding reads as edge spacing only through the previous control's
+     flip-x mirror; RTL swaps which control is mirrored, so swap the padding side too */
+  [dir='rtl'] .media-gallery--carousel slideshow-arrows .slideshow-control {
+    padding-inline: var(--padding-md) 0;
   }
 
   @media screen and (max-width: 749px) {

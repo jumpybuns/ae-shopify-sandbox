@@ -33,10 +33,31 @@ declare global {
     template: {
       name: string;
     };
+    popoverPolyfillReady: Promise<void>;
+    supportsNativePopover: boolean;
+  }
+
+  /**
+   * Minimal Navigation API surface, limited to what view-transitions.js reads. TypeScript's
+   * DOM lib does not describe it yet, and only `activation` is needed here: it identifies the
+   * cross-document navigation that activated this document, so `from === null` means there is
+   * no outgoing same-origin document for a transition to snapshot.
+   */
+  interface NavigationActivation {
+    from: NavigationHistoryEntry | null;
+    entry: NavigationHistoryEntry;
+    navigationType: 'push' | 'replace' | 'reload' | 'traverse';
+  }
+
+  interface NavigationHistoryEntry {
+    url: string | null;
   }
 
   interface Window {
     Shopify: Shopify;
+    navigation?: {
+      activation?: NavigationActivation;
+    };
   }
 
   declare const Shopify: Shopify;
@@ -76,6 +97,10 @@ declare global {
 declare module '@shopify/events' {
   interface ProductSelectPayloadDetail {
     optionValueId?: string;
+    /** Synchronous selected variant ID; '' means no variant. Await the promise for full variant data. */
+    variantId?: string;
+    /** Connected product URL for combined-listing selections. */
+    connectedProductUrl?: string;
   }
   interface ProductSelectResultDetail {
     html: Document;

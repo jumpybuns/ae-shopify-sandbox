@@ -6,7 +6,7 @@
 
 {% capture children %}
   {% unless product == blank %}
-    {% if settings.quick_add or settings.mobile_quick_add %}
+    {% if product.available and settings.quick_add or settings.mobile_quick_add %}
       {% render 'quick-add', product: product, section_id: section.id %}
     {% endif %}
   {% endunless %}
@@ -17,7 +17,7 @@
 {% stylesheet %}
   .featured-product-section .card-gallery .quick-add__button {
     position: absolute;
-    right: var(--quick-add-offset, var(--padding-sm));
+    inset-inline-end: var(--quick-add-offset, var(--padding-sm));
     bottom: var(--quick-add-offset, var(--padding-sm));
   }
 {% endstylesheet %}

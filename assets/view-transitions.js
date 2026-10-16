@@ -1,15 +1,21 @@
 (function () {
-  // Reports on Meta's in-app browsers (Facebook, Instagram) that fail to paint during
-  // cross-document (MPA) View Transitions implementation that can freeze or
-  // white-screen the storefront on navigation. June 2026 testing.
-  // Remove check if every resolved.
-  if (isMetaInAppBrowser()) {
+  // In-app WebViews (Android Facebook, Instagram, TikTok, etc.) ship a Chromium
+  // WebView build that fails to paint during cross-document (MPA) View
+  // Transitions and can freeze or white-screen the storefront on navigation.
+  // June 2026 testing. Remove check if ever resolved.
+  if (shouldDisableCrossDocumentViewTransitions()) {
     disableCrossDocumentViewTransitions();
   }
 
   const viewTransitionRenderBlocker = document.getElementById('view-transition-render-blocker');
-  // Remove the view transition render blocker if the user has reduced motion enabled or is on a low power device.
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || isLowPowerDevice()) {
+  const activation = window.navigation?.activation;
+  // A cross-document transition needs an outgoing same-origin document to snapshot, so the first
+  // entry of a visit can never have one, and the browser excludes reloads from `navigation: auto`.
+  const noTransitionPossible = !!activation && (activation.from === null || activation.navigationType === 'reload');
+
+  // Remove the render blocker whenever it can't buy a transition: reduced motion, a low power
+  // device, the first entry of a visit, or a reload.
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || isLowPowerDevice() || noTransitionPossible) {
     viewTransitionRenderBlocker?.remove();
   } else {
     // If the browser didn't manage to parse the main content quickly, at least let the user see something.
@@ -103,24 +109,30 @@
       !(viewTransition instanceof ViewTransition) ||
       isLowPowerDevice() ||
       prefersReducedMotion() ||
-      isMetaInAppBrowser()
+      shouldDisableCrossDocumentViewTransitions()
     );
   }
 
   /**
-   * Detect Facebook / Instagram in-app browsers (Meta WebView).
+   * Detect in-app WebViews known to mishandle cross-document view transitions.
    *
-   * Meta's in-app browsers expose identifying tokens in the user-agent:
-   *   - Facebook: `FBAN`, `FBAV`, `FB_IAB`, `FBIOS`
-   *   - Instagram: `Instagram`
+   * Reports of in-app browsers WebViews failing to paint during cross-document (MPA) View
+   * Transitions that can freeze or white-screen the storefront on navigation.
+   * June 2026 testing.  The common factor is the Android System WebView (Chromium WebView),
+   * whose UA carries the `; wv)` token inside the platform parenthetical.
+   * Remove check if ever resolved.
    *
    * We can't import this from utilities.js here (this file runs before modules),
-   * so the equivalent `isMetaInAppBrowser()` in utilities.js must be kept in sync.
+   * so the equivalent detector in utilities.js must be kept in sync.
    * @param {string} [userAgent=navigator.userAgent] - User-agent string to test.
-   * @returns {boolean} True if running inside a Facebook/Instagram in-app browser.
+   * @returns {boolean} True if running inside an unsupported in-app WebView.
    */
-  function isMetaInAppBrowser(userAgent = navigator.userAgent) {
-    return /\b(FBAN|FBAV|FB_IAB|FBIOS|Instagram)\b/i.test(userAgent || '');
+  function shouldDisableCrossDocumentViewTransitions(userAgent = navigator.userAgent) {
+    const ua = userAgent || '';
+    const androidWebView = /\bAndroid\b/i.test(ua) && /;\s?wv\)/i.test(ua);
+    const knownInAppBrowser =
+      /\b(FBAN|FBAV|FB_IAB|FBIOS|Instagram|musical_ly|Bytedance|BytedanceWebview|trill|TikTok)(?:\b|_)/i.test(ua);
+    return androidWebView || knownInAppBrowser;
   }
 
   /**

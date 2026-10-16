@@ -456,6 +456,9 @@
   endif
 -%}
 
+{% # A first-section hero consumes `--header-group-height` at first paint (`.hero-wrapper:first-child` rule below) %}
+{% render 'measure-header-heights', only_when_first_section: true %}
+
 <div
   id="Hero-{{ section.id }}"
   class="hero{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}{% if section.blocks.size == 0 and section.settings.section_height == 'auto' %} hero--no-blocks-auto-height{% endif %}{% if section.settings.stack_media_on_mobile %} hero--stack-mobile{% endif %}"
@@ -550,8 +553,10 @@
     --hero-height-offset: 0px;
   }
 
-  /* Being extra specific in the selector for performance reasons */
-  body:has(#header-group > .header-section > #header-component) .hero-wrapper:first-child {
+  /* Being extra specific in the selector for performance reasons.
+     Header-dependent page rules use #header-group as the :has() subject and reach the page with `~`.
+     With body as the subject, every [open] or [aria-expanded] change in the header restyles the whole page. */
+  #header-group:has(> .header-section > #header-component) ~ * .hero-wrapper:first-child {
     --hero-height-offset: var(--header-group-height, 0);
   }
 
@@ -676,6 +681,15 @@
     :is(a, button, input, textarea, select, details, summary) {
       pointer-events: auto;
     }
+
+    /*
+     * App blocks own their interactive markup, and an app is free to render it into a shadow
+     * root that no selector here can reach. Restoring pointer events on the app block wrapper
+     * covers both cases, because pointer-events inherits into the shadow tree.
+     */
+    .shopify-app-block {
+      pointer-events: auto;
+    }
   }
 
   .hero__content-wrapper--design-mode * {
@@ -745,8 +759,8 @@
       width: 50%;
 
       &:last-child {
-        right: 0;
-        left: auto;
+        inset-inline-end: 0;
+        inset-inline-start: auto;
       }
     }
   }
@@ -984,15 +998,15 @@
       "options": [
         {
           "value": "flex-start",
-          "label": "t:options.left"
+          "label": "t:options.direction_start"
         },
         {
           "value": "center",
-          "label": "t:options.center"
+          "label": "t:options.direction_center"
         },
         {
           "value": "flex-end",
-          "label": "t:options.right"
+          "label": "t:options.direction_end"
         },
         {
           "value": "space-between",
@@ -1037,15 +1051,15 @@
       "options": [
         {
           "value": "flex-start",
-          "label": "t:options.left"
+          "label": "t:options.direction_start"
         },
         {
           "value": "center",
-          "label": "t:options.center"
+          "label": "t:options.direction_center"
         },
         {
           "value": "flex-end",
-          "label": "t:options.right"
+          "label": "t:options.direction_end"
         }
       ],
       "default": "flex-start",

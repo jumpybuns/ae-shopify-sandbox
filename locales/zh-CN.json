@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "blocks": {
     "load_video": "加载视频：{{ description }}",
@@ -74,7 +83,8 @@
     "search_suggestions_available": "针对“{{ query }}”的搜索建议",
     "price_filter_low": "低价",
     "price_filter_high": "高价",
-    "view_disclosure_information_for_product": "查看 {{ product_title }} 的披露信息"
+    "view_disclosure_information_for_product": "查看 {{ product_title }} 的披露信息",
+    "show_submenu": "显示 {{ title }} 子菜单"
   },
   "actions": {
     "add_to_cart": "添加到购物车",
@@ -116,7 +126,8 @@
     "show_all_options": "显示所有选项",
     "open": "打开",
     "back_to": "返回 {{ title }}",
-    "zoom_media": "缩放媒体文件 {{ index }}"
+    "zoom_media": "缩放媒体文件 {{ index }}",
+    "back_to_main_menu": "返回主菜单"
   },
   "content": {
     "reviews": "评价",
@@ -285,9 +296,9 @@
       "add_to_apple_wallet": "添加到 Apple Wallet",
       "qr_image_alt": "二维码 — 扫描兑换礼品卡",
       "copy_code": "复制礼品卡代码",
-      "expiration_date": "过期日期：{{ expires_on }}",
       "copy_code_success": "已成功复制代码",
-      "expired": "已过期"
+      "expired": "已过期",
+      "expiration_date_html": "到期日期：<bdi>{{ expires_on }}</bdi>"
     }
   },
   "placeholders": {

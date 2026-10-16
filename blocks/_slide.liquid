@@ -53,10 +53,11 @@
       %}
 
       {%- liquid
-        assign loading = 'lazy'
+        assign loading = 'eager'
 
-        if block_index == 0 and section_index <= 3
-          assign loading = 'eager'
+        if block_index > 0 or section_index > 3
+          assign loading = 'lazy'
+        else
           assign sizes = lazy_sizes
         endif
 
@@ -286,15 +287,15 @@
       "options": [
         {
           "value": "flex-start",
-          "label": "t:options.left"
+          "label": "t:options.direction_start"
         },
         {
           "value": "center",
-          "label": "t:options.center"
+          "label": "t:options.direction_center"
         },
         {
           "value": "flex-end",
-          "label": "t:options.right"
+          "label": "t:options.direction_end"
         },
         {
           "value": "space-between",
@@ -339,15 +340,15 @@
       "options": [
         {
           "value": "flex-start",
-          "label": "t:options.left"
+          "label": "t:options.direction_start"
         },
         {
           "value": "center",
-          "label": "t:options.center"
+          "label": "t:options.direction_center"
         },
         {
           "value": "flex-end",
-          "label": "t:options.right"
+          "label": "t:options.direction_end"
         }
       ],
       "default": "flex-start",

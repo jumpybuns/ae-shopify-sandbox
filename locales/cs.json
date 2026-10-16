@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "blocks": {
     "load_video": "Načíst video: {{ description }}",
@@ -76,7 +85,8 @@
     "search_suggestions_available": "Vyhledat dostupné návrhy pro výraz „{{ query }}“",
     "price_filter_low": "Nízká cena",
     "price_filter_high": "Vysoká cena",
-    "view_disclosure_information_for_product": "Zobrazit povinné informace o produktu {{ product_title }}"
+    "view_disclosure_information_for_product": "Zobrazit povinné informace o produktu {{ product_title }}",
+    "show_submenu": "Zobrazit podnabídku {{ title }}"
   },
   "actions": {
     "add_to_cart": "Přidat do košíku",
@@ -120,7 +130,8 @@
     "show_all_options": "Zobrazit všechny možnosti",
     "open": "Otevřít",
     "back_to": "Zpět na {{ title }}",
-    "zoom_media": "Přiblížit média {{ index }}"
+    "zoom_media": "Přiblížit média {{ index }}",
+    "back_to_main_menu": "Zpět do hlavní nabídky"
   },
   "content": {
     "reviews": "recen.",
@@ -297,9 +308,9 @@
       "add_to_apple_wallet": "Přidat do Apple Peněženky",
       "qr_image_alt": "QR kód: po naskenování můžete uplatnit svou dárkovou kartu",
       "copy_code": "Zkopírovat kód dárkové karty",
-      "expiration_date": "Platnost skončí {{ expires_on }}",
       "copy_code_success": "Kód byl úspěšně zkopírován",
-      "expired": "Po konci platnosti"
+      "expired": "Po konci platnosti",
+      "expiration_date_html": "Vyprší <bdi>{{ expires_on }}</bdi>"
     }
   },
   "placeholders": {

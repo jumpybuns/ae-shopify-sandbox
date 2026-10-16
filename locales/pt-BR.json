@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "blocks": {
     "load_video": "Carregar vídeo: {{ description }}",
@@ -75,7 +84,8 @@
     "search_suggestions_available": "Pesquisar sugestões disponíveis para \"{{ query }}\"",
     "price_filter_low": "Preço baixo",
     "price_filter_high": "Preço alto",
-    "view_disclosure_information_for_product": "Ver informações de divulgação de {{ product_title }}"
+    "view_disclosure_information_for_product": "Ver informações de divulgação de {{ product_title }}",
+    "show_submenu": "Mostrar submenu de {{ title }}"
   },
   "actions": {
     "add_to_cart": "Adicionar ao carrinho",
@@ -118,7 +128,8 @@
     "show_all_options": "Exibir todas as opções",
     "open": "Abrir",
     "back_to": "Voltar para {{ title }}",
-    "zoom_media": "Mídia de zoom {{ index }}"
+    "zoom_media": "Mídia de zoom {{ index }}",
+    "back_to_main_menu": "Voltar ao menu principal"
   },
   "content": {
     "reviews": "avaliações",
@@ -291,9 +302,9 @@
       "add_to_apple_wallet": "Adicionar ao app Wallet da Apple",
       "qr_image_alt": "Código QR (faça a leitura para resgatar o cartão-presente)",
       "copy_code": "Copiar código do cartão-presente",
-      "expiration_date": "Expira em {{ expires_on }}",
       "copy_code_success": "Código copiado",
-      "expired": "Vencido"
+      "expired": "Vencido",
+      "expiration_date_html": "Expira em <bdi>{{ expires_on }}</bdi>"
     }
   },
   "placeholders": {

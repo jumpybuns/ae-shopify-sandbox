@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "blocks": {
     "load_video": "Зареждане на видео: {{ description }}",
@@ -74,7 +83,8 @@
     "search_suggestions_available": "Налични са предложения за търсене за „{{ query }}“",
     "price_filter_low": "Ниска цена",
     "price_filter_high": "Висока цена",
-    "view_disclosure_information_for_product": "Преглед на оповестената информация за {{ product_title }}"
+    "view_disclosure_information_for_product": "Преглед на оповестената информация за {{ product_title }}",
+    "show_submenu": "Показване на подменю {{ title }}"
   },
   "actions": {
     "add_to_cart": "Добавяне към количката",
@@ -116,7 +126,8 @@
     "show_all_options": "Покажи всички опции",
     "open": "Отваряне",
     "back_to": "Назад към {{ title }}",
-    "zoom_media": "Увеличаване на мултимедия {{ index }}"
+    "zoom_media": "Увеличаване на мултимедия {{ index }}",
+    "back_to_main_menu": "Назад към главното меню"
   },
   "content": {
     "reviews": "мнения",
@@ -285,9 +296,9 @@
       "add_to_apple_wallet": "Добавяне към Apple Wallet",
       "qr_image_alt": "QR код – сканирайте го, за да използвате ваучера за подарък",
       "copy_code": "Копиране на кода на ваучер за подарък",
-      "expiration_date": "Изтича на {{ expires_on }}",
       "copy_code_success": "Кодът е копиран успешно",
-      "expired": "Изтекъл"
+      "expired": "Изтекъл",
+      "expiration_date_html": "Изтича на <bdi>{{ expires_on }}</bdi>"
     }
   },
   "placeholders": {

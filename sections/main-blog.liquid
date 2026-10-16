@@ -35,6 +35,19 @@
     >
       {% liquid
         assign items_on_page = blog.articles.size
+        assign image_index = 0
+
+        # The first two images reach the initial mobile viewport; later images use native lazy-loading.
+        assign eager_image_count = 2
+
+        # These sizes mirror --narrow-page-width in theme-styles-variables.liquid,
+        # --page-margin in base.css, and --columns-gap plus the mobile breakpoint below.
+        # Desktop content uses a 40px page margin on each side, with 36px column gaps.
+        # Compact cards use three columns and two gaps, standard cards use two columns and one gap,
+        # and the hero image uses 70% of the full-width card after its image-content gap.
+        assign compact_image_sizes = '(min-width: 1520px) 456px, (min-width: 750px) calc(33.33vw - 51px), calc(100vw - 32px)'
+        assign standard_image_sizes = '(min-width: 1520px) 702px, (min-width: 750px) calc(50vw - 58px), calc(100vw - 32px)'
+        assign hero_image_sizes = '(min-width: 1520px) 983px, (min-width: 750px) calc(70vw - 81px), calc(100vw - 32px)'
       %}
       {% for article in blog.articles %}
         {% liquid
@@ -91,7 +104,34 @@
                 assign scale = 0.6
               endif
           endcase
+
+          case col_span
+            when 2
+              assign image_sizes = compact_image_sizes
+            when 3
+              assign image_sizes = standard_image_sizes
+            when 6
+              assign image_sizes = hero_image_sizes
+            else
+              # Safe fallback for a future span; add a matching sizes value with any new layout.
+              assign image_sizes = '100vw'
+          endcase
+
+          assign image_loading = 'lazy'
+          assign image_fetch_priority = 'auto'
+          if article.image
+            assign image_index = image_index | plus: 1
+
+            if image_index <= eager_image_count
+              assign image_loading = 'eager'
+            endif
+
+            if image_index == 1
+              assign image_fetch_priority = 'high'
+            endif
+          endif
         %}
+        {% # Keep the mobile breakpoint in the style block below in sync with the responsive image sizes above. %}
         {% style %}
           [data-blog-index="{{ section.id }}-{{ forloop.index }}"] {
             --col-span: {{ col_span }};
@@ -106,11 +146,19 @@
           }
         {% endstyle %}
         <div
-          class="blog-post-item{% if is_horizontal %} blog-post-item--horizontal{% endif %}"
+          class="blog-post-item"
           data-testid="blog-post-item"
           data-blog-index="{{ section.id }}-{{ forloop.index }}"
         >
-          {% content_for 'block', id: 'static-blog-post-card', type: '_blog-post-card', article: article %}
+          {% content_for 'block',
+            id: 'static-blog-post-card',
+            type: '_blog-post-card',
+            article: article,
+            image_sizes: image_sizes,
+            image_loading: image_loading,
+            image_fetch_priority: image_fetch_priority,
+            is_horizontal: is_horizontal
+          %}
         </div>
       {% endfor %}
     </div>
@@ -124,6 +172,8 @@
   .blog-posts {
     --page-content-width: var(--narrow-page-width);
     --page-width: calc(var(--page-content-width) + (var(--page-margin) * 2));
+
+    /* Keep the responsive image sizes above in sync with this gap. */
     --columns-gap: 36px;
     --rows-gap: 36px;
   }

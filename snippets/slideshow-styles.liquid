@@ -123,6 +123,9 @@
     grid-area: container;
     container-type: inline-size;
     background-color: var(--color-background);
+
+    /* Prevents the sliding-in arrows from overflowing and flashing a horizontal scrollbar */
+    overflow-x: clip;
   }
 
   /*
@@ -189,15 +192,32 @@
 
   slideshow-slide .shopify-model-viewer-ui__controls-area.shopify-model-viewer-ui__controls-area {
     bottom: var(--padding-sm);
-    right: var(--padding-sm);
+    inset-inline-end: var(--padding-sm);
+  }
+
+  /* The external model-viewer UI stylesheet positions the controls with a physical
+     right; inset-inline-end maps to left in RTL, so clear the stale right to stop
+     the auto-width controls being constrained on both sides */
+  [dir='rtl'] slideshow-slide .shopify-model-viewer-ui__controls-area.shopify-model-viewer-ui__controls-area {
+    right: auto; /* stylelint-disable-line csstools/use-logical -- clearing an external physical right in RTL */
   }
 
   slideshow-component.slideshow--content-below-media slideshow-slide {
     display: grid;
   }
 
-  .slideshow--content-below-media slideshow-slide :is(.slide__image-container, .slide__content) {
+  .slideshow--content-below-media slideshow-slide .slide__content {
     position: static;
+  }
+
+  /*
+   * The media container has to leave the absolute positioning used by the on-media layout so it
+   * occupies its own grid row, but it must stay a positioned ancestor. Its absolutely positioned
+   * children (the video poster and the media overlay) would otherwise resolve against
+   * slideshow-slide and stretch across the content row as well.
+   */
+  .slideshow--content-below-media slideshow-slide .slide__image-container {
+    position: relative;
   }
 
   .slideshow--content-below-media slideshow-slide {

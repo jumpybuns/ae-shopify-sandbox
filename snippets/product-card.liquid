@@ -12,14 +12,14 @@
 
 {% assign block_settings = block.settings %}
 
-{% style %}
-  {% if request.visual_preview_mode %}
+{% if request.visual_preview_mode %}
+  {% style %}
     product-card[data-product-transition] {
       width: 100%;
       min-width: 250px;
     }
-  {% endif %}
-{% endstyle %}
+  {% endstyle %}
+{% endif %}
 
 {% liquid
   assign has_quick_add = false
@@ -35,7 +35,7 @@
   assign product_card_id = 'product-card-link-' | append: block.id | append: '-' | append: product.id
   assign product_card_gap_value = product_card_gap | default: block_settings.product_card_gap
 
-  # Logic to determine which variant URL to use (matching swatch selection logic)
+  # variant_to_link drives the featured image used by the main-product view transition.
   assign variant_to_link = product.selected_or_first_available_variant
 
   if settings.transition_to_main_product
@@ -50,7 +50,7 @@
   endif
 
   assign onboarding = false
-  if product.id == empty or product == blank
+  if product.id == blank
     assign onboarding = true
   endif
 
@@ -74,22 +74,19 @@
     data-placeholder="true"
   {% endif %}
   {%- unless onboarding -%}
-    {% # theme-check-disable-next-line UnknownFilter %}
     view-event-payload="{{ product | standard_event_data: 'view', context: product_view_context | escape }}"
   {%- endunless -%}
 >
   <a
     id="{{ product_card_id | md5 }}"
     {% unless onboarding %}
-      href="{{ variant_to_link.url }}"
+      {% # Link to product.url so algorithmic variant relevance and tracking params are maintained. %}
+      href="{{ product.url }}"
     {% endunless %}
     class="product-card__link"
     ref="productCardLink"
-  >
-    <span class="visually-hidden">
-      {{ product.title }}
-    </span>
-  </a>
+    aria-label="{{ product.title | escape }}"
+  ></a>
   <div
     class="
       product-card__content
@@ -119,18 +116,4 @@
   </div>
 </product-card>
 
-{% stylesheet %}
-  .product-card__placeholder-image svg {
-    height: 100%;
-  }
-
-  .product-card__content slideshow-component {
-    --cursor: pointer;
-  }
-
-  @media screen and (max-width: 749px) {
-    .product-card slideshow-arrows .slideshow-control {
-      display: none;
-    }
-  }
-{% endstylesheet %}
+{% render 'product-card-styles' %}

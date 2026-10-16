@@ -24,7 +24,12 @@
   {% content_for 'blocks' %}
 {% endcapture %}
 
+{% render 'deferred-media-product-model-styles' %}
+{% render 'deferred-media-video-styles' %}
+
 {% if section.settings.enable_sticky_add_to_cart %}
+  {% render 'fly-to-cart-styles' %}
+
   {% liquid
     assign current_variant = product.selected_or_first_available_variant
     # Get the initial quantity based on quantity rules
@@ -165,6 +170,8 @@
       </button>
     </div>
   </sticky-add-to-cart>
+
+  {% render 'add-to-cart-button-styles' %}
 {% endif %}
 
 {% render 'product-information-content',
@@ -179,8 +186,8 @@
 {% stylesheet %}
   .sticky-add-to-cart__bar {
     position: fixed;
-    bottom: 20px;
-    left: 50%;
+    bottom: max(20px, var(--safe-area-inset-bottom));
+    left: 50%; /* stylelint-disable-line csstools/use-logical -- centring pair with a physical translateX(-50%) */
     opacity: 0;
     transform: translateX(-50%) translateY(calc(100% + 40px));
     z-index: calc(var(--layer-sticky) - 1); /* Below sticky header */
@@ -236,7 +243,7 @@
   }
 
   .sticky-add-to-cart__info[data-has-image='false'] {
-    padding-left: var(--padding-lg);
+    padding-inline-start: var(--padding-lg);
   }
 
   .sticky-add-to-cart__image {
@@ -292,6 +299,10 @@
       max-width: none;
       border-radius: 0;
 
+      /* Full-bleed bar touches the physical bottom edge (viewport-fit=cover); keep the
+         controls above the home indicator while the background fills the safe area */
+      padding-block-end: calc(var(--padding-sm) + var(--safe-area-inset-bottom));
+
       &::before {
         --border: 1px;
       }
@@ -302,7 +313,7 @@
     }
 
     .sticky-add-to-cart__info[data-has-image='false'] {
-      padding-left: 0;
+      padding-inline-start: 0;
     }
 
     .sticky-add-to-cart__title {
@@ -403,11 +414,11 @@
       "options": [
         {
           "value": "left",
-          "label": "t:options.left"
+          "label": "t:options.direction_start"
         },
         {
           "value": "right",
-          "label": "t:options.right"
+          "label": "t:options.direction_end"
         }
       ],
       "default": "left"

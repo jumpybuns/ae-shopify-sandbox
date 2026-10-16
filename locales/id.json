@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "blocks": {
     "load_video": "Muat video: {{ description }}",
@@ -71,6 +80,7 @@
     "featured_product": "Produk unggulan",
     "product_details": "Detail produk",
     "show_product_details": "Tampilkan detail produk untuk {{ product_name }}",
+    "show_submenu": "Tampilkan submenu {{ title }}",
     "search_suggestions_available": "Cari rekomendasi yang tersedia untuk \"{{ query }}\"",
     "price_filter_low": "Harga rendah",
     "price_filter_high": "Harga tinggi",
@@ -116,6 +126,7 @@
     "show_all_options": "Tampilkan semua opsi",
     "open": "Buka",
     "back_to": "Kembali ke {{ title }}",
+    "back_to_main_menu": "Kembali ke menu utama",
     "zoom_media": "Perbesar media {{ index }}"
   },
   "content": {
@@ -285,9 +296,9 @@
       "add_to_apple_wallet": "Tambahkan ke Dompet Apple",
       "qr_image_alt": "Kode QR — pindai untuk menukarkan voucher",
       "copy_code": "Salin kode voucher",
-      "expiration_date": "Kedaluwarsa pada {{ expires_on }}",
       "copy_code_success": "Kode berhasil disalin",
-      "expired": "Kedaluwarsa"
+      "expired": "Kedaluwarsa",
+      "expiration_date_html": "Kedaluwarsa pada <bdi>{{ expires_on }}</bdi>"
     }
   },
   "placeholders": {

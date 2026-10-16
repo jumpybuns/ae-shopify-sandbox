@@ -18,6 +18,7 @@
     "country_results_count": "{{ count }} results",
     "product_details": "Product details",
     "show_product_details": "Show product details for {{ product_name }}",
+    "show_submenu": "Show {{ title }} submenu",
     "decrease_quantity": "Decrease quantity",
     "discount": "Apply a discount code",
     "discount_menu": "Discount Codes",
@@ -76,6 +77,7 @@
     "apply": "Apply",
     "back": "Back",
     "back_to": "Back to {{ title }}",
+    "back_to_main_menu": "Back to main menu",
     "choose": "Choose",
     // Button to reset current selection or input
     "clear": "Clear",
@@ -336,7 +338,7 @@
       "add_to_apple_wallet": "Add to Apple Wallet",
       "qr_image_alt": "QR code — scan to redeem gift card",
       "copy_code": "Copy gift card code",
-      "expiration_date": "Expires {{ expires_on }}",
+      "expiration_date_html": "Expires <bdi>{{ expires_on }}</bdi>",
       "copy_code_success": "Code copied successfully",
       "expired": "Expired"
     }

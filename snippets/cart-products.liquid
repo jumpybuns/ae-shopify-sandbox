@@ -11,6 +11,9 @@
   {% render 'cart-products', force_empty: true %}
 {% enddoc %}
 
+{% render 'cart-typography-styles' %}
+{% render 'price-styles' %}
+
 {% liquid
   assign block_settings = block.settings
 %}
@@ -85,7 +88,7 @@
     >
       <div
         class="cart-items spacing-style{% if block_settings.dividers %} cart-items--dividers{% endif %}"
-        style="{%  render 'spacing-style', settings: block_settings %} --cart-items-gap:{{ block_settings.gap | append: "px" }};"
+        style="{% render 'spacing-style', settings: block_settings %} --cart-items-gap:{{ block_settings.gap | append: "px" }};"
       >
         <table
           class="cart-items__table"
@@ -96,7 +99,9 @@
             role="caption"
           >
             {{ 'content.cart_total' | t }}
-            <span>{{ cart.total_price | money_with_currency }}</span>
+            <span
+              ><bdi>{{ cart.total_price | money_with_currency }}</bdi></span
+            >
           </caption>
 
           <thead
@@ -201,15 +206,15 @@
                       >
                         {{- item.product.title -}}
                       </a>
-                      {% render 'cart-disclosure-tooltip',
+                      {%- render 'cart-disclosure-tooltip',
                         product: item.product,
                         unique_id: cart_disclosure_unique_id,
                         mode: 'trigger'
-                      %}
+                      -%}
                     </div>
                     {% if item.product.vendor and block_settings.vendor %}
                       <p>
-                        {{ item.product.vendor }}
+                        <bdi>{{ item.product.vendor }}</bdi>
                       </p>
                     {% endif %}
 
@@ -286,7 +291,9 @@
                           role="list"
                         >
                           {%- for discount in item.line_level_discount_allocations -%}
-                            <li>{{ discount.discount_application.title | escape }}</li>
+                            <li>
+                              <bdi>{{ discount.discount_application.title | escape }}</bdi>
+                            </li>
                           {%- endfor -%}
                         </ul>
                       {%- endif -%}
@@ -297,13 +304,15 @@
                     <div>
                       {% if item.original_price != item.final_price %}
                         <span class="visually-hidden">{{ 'content.price_sale' | t }}</span>
-                        <span>{{ item.final_price | money }}</span>
+                        <span
+                          ><bdi>{{ item.final_price | money }}</bdi></span
+                        >
                         <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
                         <s class="compare-at-price">
                           {% if item.variant.compare_at_price > item.original_price %}
-                            {{ item.variant.compare_at_price | money }}
+                            <bdi>{{ item.variant.compare_at_price | money }}</bdi>
                           {% else %}
-                            {{ item.original_price | money }}
+                            <bdi>{{ item.original_price | money }}</bdi>
                           {% endif %}
                         </s>
                       {% else %}
@@ -313,11 +322,15 @@
                           <span class="visually-hidden">{{ 'content.price' | t }}</span>
                         {% endif %}
 
-                        <span>{{ item.original_price | money }}</span>
+                        <span
+                          ><bdi>{{ item.original_price | money }}</bdi></span
+                        >
 
                         {% if item.variant.compare_at_price > item.original_price %}
                           <span class="visually-hidden">{{ 'content.price_regular' | t }}</span>
-                          <s class="compare-at-price">{{ item.variant.compare_at_price | money }}</s>
+                          <s class="compare-at-price"
+                            ><bdi>{{ item.variant.compare_at_price | money }}</bdi></s
+                          >
                         {% endif %}
                       {% endif %}
                     </div>
@@ -396,7 +409,9 @@
                   role="cell"
                   headers="productTotal"
                 >
-                  <text-component value="{{ price | strip_html }}">{{ price }}</text-component>
+                  <text-component value="{{ price | strip_html }}"
+                    ><bdi>{{ price }}</bdi></text-component
+                  >
                   {%- if item.unit_price_measurement -%}
                     <div class="cart-items__price-unit cart-secondary-typography">
                       {% render 'unit-price', price: unit_price, measurement: item.unit_price_measurement %}
@@ -619,18 +634,17 @@
   }
 
   .cart-items__title-row {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--gap-xs);
+    display: block;
     max-width: 100%;
     min-width: 0;
+    font-size: var(--font-size--md);
   }
 
   .cart-items__title {
     font-size: var(--font-size--md);
     color: var(--color-foreground);
     text-transform: var(--product-title-case);
-    display: block;
+    display: inline;
     margin-block-start: 0;
     min-width: 0;
     overflow-wrap: break-word;
@@ -866,18 +880,6 @@
     }
   }
 
-  .cart-primary-typography {
-    font-family: var(--cart-primary-font-family);
-    font-style: var(--cart-primary-font-style);
-    font-weight: var(--cart-primary-font-weight);
-  }
-
-  .cart-secondary-typography {
-    font-family: var(--cart-secondary-font-family);
-    font-style: var(--cart-secondary-font-style);
-    font-weight: var(--cart-secondary-font-weight);
-  }
-
   .cart__ctas {
     width: 100%;
     display: grid;
@@ -893,6 +895,7 @@
   shopify-accelerated-checkout-cart {
     --shopify-accelerated-checkout-inline-alignment: center;
     --shopify-accelerated-checkout-button-border-radius: var(--style-border-radius-buttons-primary);
+    --shopify-accelerated-checkout-button-block-size: var(--height-buy-buttons);
     --shopify-accelerated-checkout-row-gap: var(--checkout-button-gap, 10px);
   }
 
@@ -956,8 +959,8 @@
       height: var(--button-size-md);
     }
 
-    .cart-items .quantity-selector input {
-      max-width: calc(var(--quantity-selector-width) - var(--button-size-md) * 2);
+    .cart-items .quantity-selector input[type='number'] {
+      width: calc(var(--quantity-selector-width) - var(--button-size-md) * 2);
     }
   }
 

@@ -90,15 +90,15 @@
     justify-content: flex-end;
     height: var(--minimum-touch-target);
     align-items: center;
-    margin-right: var(--icon-offset);
+    margin-inline-end: var(--icon-offset);
   }
 
   .column-options-wrapper:only-child {
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 
   .facets__form-wrapper > .column-options-wrapper:first-child {
-    margin-left: auto;
+    margin-inline-start: auto;
   }
 
   .facets .column-options-wrapper {
@@ -123,37 +123,8 @@
   }
 
   .column-options__option {
-    display: none;
+    display: flex;
     position: relative;
-  }
-
-  .column-options__option:has(.column-picker-mobile--single),
-  .column-options__option:has(.column-picker-mobile--double) {
-    @media screen and (max-width: 749px) {
-      display: flex;
-    }
-  }
-
-  .column-options__option:has(.column-picker--default),
-  .column-options__option:has(.column-picker--zoom-out) {
-    @media screen and (min-width: 750px) {
-      display: flex;
-    }
-  }
-
-  /* Override base rule for grid density controls - only when visible */
-  .column-options-wrapper .column-options__option:has(input[type='radio']):has(.column-picker-mobile--single),
-  .column-options-wrapper .column-options__option:has(input[type='radio']):has(.column-picker-mobile--double) {
-    @media screen and (max-width: 749px) {
-      display: flex;
-    }
-  }
-
-  .column-options-wrapper .column-options__option:has(input[type='radio']):has(.column-picker--default),
-  .column-options-wrapper .column-options__option:has(input[type='radio']):has(.column-picker--zoom-out) {
-    @media screen and (min-width: 750px) {
-      display: flex;
-    }
   }
 
   .column-options__legend {

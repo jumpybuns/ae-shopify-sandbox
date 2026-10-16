@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "blocks": {
     "load_video": "Indlæs video: {{ description }}",
@@ -74,7 +83,8 @@
     "search_suggestions_available": "Søgeforslag tilgængelige for \"{{ query }}\"",
     "price_filter_low": "Lav pris",
     "price_filter_high": "Høj pris",
-    "view_disclosure_information_for_product": "Se deklarationsoplysninger for {{ product_title }}"
+    "view_disclosure_information_for_product": "Se deklarationsoplysninger for {{ product_title }}",
+    "show_submenu": "Vis undermenu for {{ title }}"
   },
   "actions": {
     "add_to_cart": "Læg i indkøbskurven",
@@ -116,7 +126,8 @@
     "show_all_options": "Vis alle muligheder",
     "open": "Åbn",
     "back_to": "Tilbage til {{ title }}",
-    "zoom_media": "Zoom medie {{ index }}"
+    "zoom_media": "Zoom medie {{ index }}",
+    "back_to_main_menu": "Tilbage til hovedmenu"
   },
   "content": {
     "reviews": "anmeldelser",
@@ -285,9 +296,9 @@
       "add_to_apple_wallet": "Føj til Apple Wallet",
       "qr_image_alt": "QR-kode – scan for at indløse gavekort",
       "copy_code": "Kopiér gavekortskode",
-      "expiration_date": "Udløber {{ expires_on }}",
       "copy_code_success": "Koden er blevet kopieret",
-      "expired": "Udløbet"
+      "expired": "Udløbet",
+      "expiration_date_html": "Udløber <bdi>{{ expires_on }}</bdi>"
     }
   },
   "placeholders": {

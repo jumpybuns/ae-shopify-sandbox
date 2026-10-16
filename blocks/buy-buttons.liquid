@@ -149,12 +149,13 @@
                 <div class="volume-pricing__row volume-pricing__row--even">
                   <span>{{ variant.quantity_rule.min }}+</span>
                   <span>
-                    {%- if use_currency -%}
-                      {{- variant.price | money_with_currency | strip -}}
-                    {%- else -%}
-                      {{- variant.price | money | strip -}}
-                    {%- endif -%}
-                    /{{ 'content.each_abbreviation' | t -}}
+                    <bdi>
+                      {%- if use_currency -%}
+                        {{- variant.price | money_with_currency | strip -}}
+                      {%- else -%}
+                        {{- variant.price | money | strip -}}
+                      {%- endif -%}</bdi
+                    >/{{ 'content.each_abbreviation' | t -}}
                   </span>
                 </div>
                 {%- for price_break in variant.quantity_price_breaks limit: 2 -%}
@@ -169,12 +170,13 @@
                   <div class="{{ row_class }}">
                     <span>{{ price_break.minimum_quantity }}+</span>
                     <span>
-                      {%- if use_currency -%}
-                        {{- price_break.price | money_with_currency | strip -}}
-                      {%- else -%}
-                        {{- price_break.price | money | strip -}}
-                      {%- endif -%}
-                      /{{ 'content.each_abbreviation' | t -}}
+                      <bdi>
+                        {%- if use_currency -%}
+                          {{- price_break.price | money_with_currency | strip -}}
+                        {%- else -%}
+                          {{- price_break.price | money | strip -}}
+                        {%- endif -%}</bdi
+                      >/{{ 'content.each_abbreviation' | t -}}
                     </span>
                   </div>
                 {%- endfor -%}
@@ -195,12 +197,13 @@
                       <div class="{{ row_class }}">
                         <span>{{ price_break.minimum_quantity }}+</span>
                         <span>
-                          {%- if use_currency -%}
-                            {{- price_break.price | money_with_currency | strip -}}
-                          {%- else -%}
-                            {{- price_break.price | money | strip -}}
-                          {%- endif -%}
-                          /{{ 'content.each_abbreviation' | t -}}
+                          <bdi>
+                            {%- if use_currency -%}
+                              {{- price_break.price | money_with_currency | strip -}}
+                            {%- else -%}
+                              {{- price_break.price | money | strip -}}
+                            {%- endif -%}</bdi
+                          >/{{ 'content.each_abbreviation' | t -}}
                         </span>
                       </div>
                     {%- endfor -%}
@@ -263,6 +266,7 @@
   {%- assign pick_up_availabilities = closest.product.selected_or_first_available_variant.store_availabilities
     | where: 'pick_up_enabled', true
   -%}
+  {%- assign closest_available_pick_up = pick_up_availabilities | where: 'available', true | first -%}
 
   <local-pickup
     class="spacing-style product__pickup-availabilities"
@@ -285,7 +289,7 @@
       <div class="pickup-availability__row">
         <div class="pickup-availability__column">
           <span class="svg-wrapper">
-            {% if pick_up_availabilities.first.available %}
+            {% if closest_available_pick_up %}
               {{- 'icon-available.svg' | inline_asset_content -}}
             {% else %}
               {{- 'icon-unavailable.svg' | inline_asset_content -}}
@@ -293,12 +297,12 @@
           </span>
         </div>
         <div class="pickup-availability__column">
-          {% if pick_up_availabilities.first.available %}
+          {% if closest_available_pick_up %}
             <p class="pickup-location__text-sm">
-              {{ 'content.pickup_available_at_html' | t: location: pick_up_availabilities.first.location.name }}
+              {{ 'content.pickup_available_at_html' | t: location: closest_available_pick_up.location.name }}
             </p>
             <p class="pickup-location__text-xs">
-              {{ 'content.pickup_ready_in' | t: pickup_time: pick_up_availabilities.first.pick_up_time }}
+              {{ 'content.pickup_ready_in' | t: pickup_time: closest_available_pick_up.pick_up_time }}
             </p>
           {% else %}
             <p class="pickup-location__text-sm">

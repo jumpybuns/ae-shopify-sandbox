@@ -14,6 +14,8 @@
   assign id = 'BuyButtons-ProductSubmitButton-' | append: block.id
 %}
 {% render 'button-custom-styles', block_settings: block.settings, block_id: block.id %}
+{% render 'add-to-cart-button-styles' %}
+{% render 'fly-to-cart-styles' %}
 
 <span
   {{ block.shopify_attributes }}
@@ -23,6 +25,7 @@
     id: id,
     class: class,
     can_add_to_cart: can_add_to_cart,
+    show_icon: can_add_to_cart,
     product: closest.product,
     add_to_cart_text: add_to_cart_text,
     data_testid: 'standalone-add-to-cart'

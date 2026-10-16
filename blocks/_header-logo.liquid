@@ -52,7 +52,9 @@
   %}
 
   <span
-    class="header-logo__image-container header-logo__image-container--original"
+    {% if use_inverse_logo %}
+      class="header-logo__solid-header-image-container"
+    {% endif %}
     data-testid="header-logo"
   >
     {% render 'image',
@@ -67,7 +69,7 @@
 
   {% if use_inverse_logo %}
     <span
-      class="header-logo__image-container header-logo__image-container--inverse"
+      class="header-logo__transparent-header-image-container"
       data-testid="header-logo-inverse"
     >
       {% render 'image',
@@ -131,11 +133,11 @@
     }
   }
 
-  .header-logo:has(.header-logo__image-container--inverse) .header-logo__image-container--original {
+  .header-logo__solid-header-image-container {
     display: var(--header-logo-display, block);
   }
 
-  .header-logo__image-container--inverse {
+  .header-logo__transparent-header-image-container {
     display: var(--header-logo-inverse-display, none);
   }
 {% endstylesheet %}

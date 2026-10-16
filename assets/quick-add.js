@@ -1,6 +1,5 @@
 import { Component } from '@theme/component';
 import { morph } from '@theme/morph';
-import { ThemeEvents } from '@theme/events';
 import { DialogComponent, DialogCloseEvent } from '@theme/dialog';
 import { mediaQueryLarge, isMobileBreakpoint, getIOSVersion } from '@theme/utilities';
 import VariantPicker from '@theme/variant-picker';
@@ -16,25 +15,14 @@ export class QuickAddComponent extends Component {
 
   get productPageUrl() {
     const productCard = /** @type {import('./product-card').ProductCard | null} */ (this.closest('product-card'));
+    if (productCard) return productCard.productPageUrl;
+
     const hotspotProduct = /** @type {import('./product-hotspot').ProductHotspotComponent | null} */ (
       this.closest('product-hotspot-component')
     );
-    const productLink = productCard?.getProductCardLink() || hotspotProduct?.getHotspotProductLink();
+    const productLink = hotspotProduct?.getHotspotProductLink();
 
-    if (!productLink?.href) return '';
-
-    const url = new URL(productLink.href);
-
-    if (url.searchParams.has('variant')) {
-      return url.toString();
-    }
-
-    const selectedVariantId = this.#getSelectedVariantId();
-    if (selectedVariantId) {
-      url.searchParams.set('variant', selectedVariantId);
-    }
-
-    return url.toString();
+    return productLink?.href || '';
   }
 
   /**
@@ -43,7 +31,7 @@ export class QuickAddComponent extends Component {
    */
   #getSelectedVariantId() {
     const productCard = /** @type {import('./product-card').ProductCard | null} */ (this.closest('product-card'));
-    return productCard?.getSelectedVariantId() || null;
+    return productCard?.getSelectedVariantId() ?? null;
   }
 
   connectedCallback() {
@@ -72,10 +60,35 @@ export class QuickAddComponent extends Component {
   #handleProductSelectUpdate = (event) => {
     if (!(event.target instanceof HTMLElement)) return;
     if (event.target.closest('product-card') !== this.closest('product-card')) return;
+    if (this.dataset.usesSellingPlans === 'true') return;
+
+    // Only flip choose <-> add when both buttons were rendered.
+    // Otherwise the flip would hide the sole rendered button and reveal nothing.
+    if (this.dataset.rendersBothButtons !== 'true') return;
+
     const productOptionsCount = this.dataset.productOptionsCount;
-    const quickAddButton = productOptionsCount === '1' ? 'add' : 'choose';
+    let quickAddButton = productOptionsCount === '1' ? 'add' : 'choose';
+
+    // A single-option card can resolve to an unavailable variant (e.g. re-selecting a
+    // sold-out swatch). Keep "Choose" so shoppers reach the picker, not a dead-end disabled "Add".
+    if (quickAddButton === 'add' && this.#isSelectedVariantUnavailable()) {
+      quickAddButton = 'choose';
+    }
+
     this.setAttribute('data-quick-add-button', quickAddButton);
   };
+
+  /**
+   * Whether the card's currently selected swatch maps to an unavailable variant.
+   * Reads `data-option-available` off the variant picker's selected option - the same
+   * signal the product card uses. Only reports true on an explicit `false`, so an
+   * unknown/absent signal leaves the caller's default ("add") untouched.
+   * @returns {boolean}
+   */
+  #isSelectedVariantUnavailable() {
+    const productCard = /** @type {import('./product-card').ProductCard | null} */ (this.closest('product-card'));
+    return productCard?.variantPicker?.selectedOption?.dataset.optionAvailable === 'false';
+  }
 
   /**
    * Clears the cached content when cart is updated
@@ -104,6 +117,11 @@ export class QuickAddComponent extends Component {
     event.preventDefault();
 
     const currentUrl = this.productPageUrl;
+
+    if (this.dataset.usesSellingPlans === 'true') {
+      if (currentUrl) window.location.href = currentUrl;
+      return;
+    }
 
     // Check if we have cached content for this URL
     let productGrid = this.#cachedContent.get(currentUrl);
@@ -155,6 +173,7 @@ export class QuickAddComponent extends Component {
     if (!(dialogComponent instanceof QuickAddDialog)) return;
 
     this.#stayVisibleUntilDialogCloses(dialogComponent);
+    this.#syncHeaderState(dialogComponent);
 
     dialogComponent.showDialog();
 
@@ -164,6 +183,24 @@ export class QuickAddComponent extends Component {
     if (!dialog) return;
     dialog.addEventListener('animationstart', this.#resetScroll.bind(this), { once: true });
   };
+
+  /**
+   * Mirrors the header states that product media and details styles depend on. Those rules reach page
+   * content from `#header-group` with a sibling combinator, which can't reach this body-level dialog.
+   * Scroll is locked while the dialog is open, so the header can't change state until it closes.
+   *
+   * @param {QuickAddDialog} dialogComponent
+   */
+  #syncHeaderState(dialogComponent) {
+    dialogComponent.toggleAttribute(
+      'header-transparent',
+      document.querySelector('header-component[transparent]') !== null
+    );
+    dialogComponent.toggleAttribute(
+      'header-sticky-active',
+      document.querySelector("#header-group #header-component[data-sticky-state='active']") !== null
+    );
+  }
 
   #closeQuickAddModal = () => {
     const dialogComponent = document.getElementById('quick-add-dialog');

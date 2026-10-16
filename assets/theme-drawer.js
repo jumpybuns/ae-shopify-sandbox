@@ -1,6 +1,7 @@
 import { Component } from '@theme/component';
 import { trapFocus, removeTrapFocus } from '@theme/focus';
 import { isClickedOutside, lockScroll, onAnimationEnd, unlockScroll } from '@theme/utilities';
+import { getScrollTop, scrollTo } from '@theme/scroll-container';
 
 /** Viewport width below which the drawer opens as a modal overlay (no squeeze). */
 const MODAL_BREAKPOINT = 990;
@@ -314,6 +315,14 @@ export class ThemeDrawer extends Component {
 
     const { panel } = this.refs;
 
+    // In modal mode the page behind the drawer is scroll-locked, so the shopper's
+    // position cannot legitimately change while it is open. Releasing that lock,
+    // closing the dialog, and restoring focus can each move the root scroller,
+    // leaving the shopper at the top of the page instead of where they were
+    // browsing. Capture the offset up front and re-apply it once the drawer is gone.
+    const closingAsModal = this.#modalQuery.matches;
+    const scrollTopWhileLocked = closingAsModal ? getScrollTop() : null;
+
     this.removeAttribute('open');
     this.dispatchEvent(new DrawerCloseEvent());
 
@@ -341,10 +350,21 @@ export class ThemeDrawer extends Component {
     // trigger node. The JS reference stays valid but the element is detached
     // from the live DOM — and .focus() on a detached node is a silent no-op,
     // so we explicitly check and fall back to a fresh query.
+    // preventScroll on a modal close only: the captured offset is re-applied below,
+    // so the trigger is back on screen by construction. A sidebar close locks no
+    // scroll and restores no offset, and the shopper can scroll while it is open —
+    // there the browser should still bring the restored focus target into view
+    // rather than leaving keyboard focus off screen.
     if (trigger && document.contains(trigger)) {
-      trigger.focus();
+      trigger.focus({ preventScroll: closingAsModal });
     } else {
-      /** @type {HTMLElement | null} */ (document.querySelector(`[aria-controls="${this.id}"]`))?.focus();
+      /** @type {HTMLElement | null} */ (document.querySelector(`[aria-controls="${this.id}"]`))?.focus({
+        preventScroll: closingAsModal,
+      });
+    }
+
+    if (scrollTopWhileLocked != null && getScrollTop() !== scrollTopWhileLocked) {
+      scrollTo({ top: scrollTopWhileLocked, behavior: 'instant' });
     }
 
     this.#isClosing = false;
