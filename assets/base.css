@@ -934,13 +934,13 @@ button.shopify-payment-button__button--unbranded:hover:not([disabled]) {
   --button-border-color: var(--color-primary-button-hover-border);
 }
 
-.button-custom.button-custom--AempnSzdVcGJPY09ma__button_UGkAFJ:hover {
+a.button-custom:hover {
   --button-color: rgb(246 237 221 / 1.0);
   --button-background-color: rgb(70 73 60 / 1.0);
   --button-border-color: rgb(70 73 60 / 1.0);
 }
 
-.button-custom.button-custom--ANXRQcmlaL3lMOFJLa__button_yhjQWy:hover {
+a.button-custom:hover {
   --button-color: rgb(70 73 60 / 1.0);;
   --button-background-color: rgb(246 237 221 / 1.0);
   --button-border-color: rgb(70 73 60 / 1.0);
