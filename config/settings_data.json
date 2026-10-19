@@ -52,7 +52,7 @@
     "button_text_case_primary": "default",
     "palette_secondary_button_background": "{{ settings.color_palette.background }}",
     "palette_secondary_button_text": "{{ settings.color_palette.foreground }}",
-    "palette_secondary_button_border": "{{ settings.color_palette.foreground }}",
+    "palette_secondary_button_border": "{{ settings.color_palette.background }}",
     "secondary_button_border_width": 2,
     "pills_border_radius": 40,
     "cart_type": "drawer",
