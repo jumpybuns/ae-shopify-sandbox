@@ -428,7 +428,7 @@
                   "type": "button",
                   "name": "Button",
                   "settings": {
-                    "label": "Shop now",
+                    "label": "More Details",
                     "link": "shopify://collections/all",
                     "open_in_new_tab": false,
                     "style_class": "button-custom",
