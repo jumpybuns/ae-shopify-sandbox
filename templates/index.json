@@ -264,7 +264,7 @@
                   "type": "text",
                   "name": "t:names.heading",
                   "settings": {
-                    "text": "<h2>Browne Amplication's PROTEIN</h2>",
+                    "text": "<h2>Browne Amplication's PROTEIN V4</h2>",
                     "width": "fit-content",
                     "max_width": "normal",
                     "alignment": "left",
@@ -289,7 +289,7 @@
                 "text_WpXhQM": {
                   "type": "text",
                   "settings": {
-                    "text": "<p>Made with care and unconditionally loved by our customers, this signature bestseller exceeds all expectations.</p>",
+                    "text": "<p><strong>New in V4:</strong><br/>The Protein V4 introduces several key updates for even more versatility and tonal control:</p><ul><li>A <strong>3-way hi-cut toggle</strong>, taken from our Carbon V2, allows you to tailor the top end to your amp or preferences</li><li>Three <strong>internal switches</strong> on the Green side:<strong>Low cut</strong> toggle for tightening the low end even moreA <strong>heavier clipping</strong> mode for a more aggressive breakupAn <strong>asymmetrical clipping</strong> option for added harmonic complexity and a slightly rawer edge</li></ul><p>These additions make the Protein more adaptable than ever—whether you're chasing Nashville clarity, smooth breakup, or a harmonically rich lead tone, the V4 is built for your pedal board needs.&nbsp;</p>",
                     "width": "100%",
                     "max_width": "normal",
                     "alignment": "left",
