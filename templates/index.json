@@ -447,7 +447,7 @@
                   "type": "button",
                   "name": "Button",
                   "settings": {
-                    "label": "Explore the collection",
+                    "label": "More overdrive pedals",
                     "link": "shopify://collections/preamp",
                     "open_in_new_tab": false,
                     "style_class": "button-custom",
