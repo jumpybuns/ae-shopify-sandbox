@@ -1124,7 +1124,7 @@
         "icons_shape": "none",
         "section_width": "page-width",
         "gap": 28,
-        "background_color": "{{ settings.color_palette.background }}",
+        "background_color": "{{ settings.color_palette.foreground }}",
         "padding-block-start": 48,
         "padding-block-end": 48
       }
