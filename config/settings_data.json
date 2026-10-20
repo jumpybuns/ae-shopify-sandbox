@@ -92,10 +92,10 @@
     "content_for_index": [],
     "color_palette": {
       "background": "#202219",
-      "foreground": "#f6eddd",
+      "foreground": "#FFFFFF",
       "color1": "#46493c",
       "color2": "#000000",
-      "color3": "#635D4E"
+      "color3": "#635d4e"
     }
   },
   "presets": {
