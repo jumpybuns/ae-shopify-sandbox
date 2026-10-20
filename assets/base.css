@@ -934,7 +934,7 @@ button.shopify-payment-button__button--unbranded:hover:not([disabled]) {
   --button-border-color: var(--color-primary-button-hover-border);
 }
 
-a.button-custom:hover {
+/* a.button-custom:hover {
   --button-color: rgb(246 237 221 / 1.0);
   --button-background-color: rgb(70 73 60 / 1.0);
   --button-border-color: rgb(70 73 60 / 1.0);
@@ -945,7 +945,7 @@ a.button-custom:hover {
   --button-background-color: rgb(246 237 221 / 1.0);
   --button-border-color: rgb(70 73 60 / 1.0);
 }
-
+ */
 
 /* Needed to override the default Shopify styles */
 button.shopify-payment-button__button--unbranded:hover:not([disabled]) {
