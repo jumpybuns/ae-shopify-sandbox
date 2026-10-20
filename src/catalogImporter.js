@@ -14,7 +14,8 @@
 // That is a business decision, not something to default silently.
 
 import { getProductDetails } from './aeClient/aliexpressClient.js';
-import { createOrUpdateProduct, setMetafields, findProductByAeId } from './shopifyAdminClient.js';
+import { createOrUpdateProduct, setMetafields, findProductByAeId, activateAndPublish } from './shopifyAdminClient.js';
+import { shortTitle, descriptionFromTitle } from './productText.js';
 
 // Shopify's variants(first:) page limit — the importer reads variants back
 // from the productSet response, so more than this can't be mapped in one go.
@@ -82,7 +83,7 @@ function parseMarkup() {
  *   seen           Set of AliExpress ids already handled in this run.
  */
 export async function importAeProduct(inputId, options = {}) {
-  const { expectedBrand = null, dryRun = false, force = false, seen = new Set() } = options;
+  const { expectedBrand = null, dryRun = false, force = false, publish = false, seen = new Set() } = options;
   const result = { inputId: String(inputId), status: 'failed', reason: '' };
 
   try {
@@ -162,7 +163,8 @@ export async function importAeProduct(inputId, options = {}) {
     // --- Create the product ------------------------------------------
     const skuFor = (i) => `AE-${aeProductId}-${i}`;
     const shopifyProduct = await createOrUpdateProduct({
-      title: truncateTitle(ae.title),
+      title: truncateTitle(shortTitle(ae.title)),
+      descriptionHtml: descriptionFromTitle(ae.title),
       images: ae.images,
       optionName: 'Style',
       variants: ae.variants.map((v, i) => ({
@@ -208,6 +210,15 @@ export async function importAeProduct(inputId, options = {}) {
     seen.add(aeProductId);
     result.status = 'created';
     result.reason = 'created as DRAFT with AE mapping';
+    if (publish) {
+      // Mapping is already written, so a publish failure leaves a valid draft.
+      try {
+        await activateAndPublish(shopifyProduct.id);
+        result.reason = 'created, ACTIVE and published to the Online Store, with AE mapping';
+      } catch (e) {
+        result.reason += ` (publish FAILED: ${e.message}; run scripts/publishProducts.mjs later)`;
+      }
+    }
     return result;
   } catch (err) {
     result.status = 'failed';

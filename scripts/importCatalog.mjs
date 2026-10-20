@@ -9,6 +9,7 @@
 //   node scripts/importCatalog.mjs                      # import for real
 //   node scripts/importCatalog.mjs --only Mooer         # one brand (repeatable)
 //   node scripts/importCatalog.mjs --file path/to.txt   # a different catalog file
+//   node scripts/importCatalog.mjs --publish            # also set ACTIVE + publish to Online Store (default: DRAFT)
 //   node scripts/importCatalog.mjs --force              # import despite brand mismatch
 //   node scripts/importCatalog.mjs --delay 1500         # ms between products (default 750)
 //
@@ -27,11 +28,12 @@ import { importAeProduct, extractAeId, normalizeBrand } from '../src/catalogImpo
 
 // --- args --------------------------------------------------------------
 const argv = process.argv.slice(2);
-const flags = { dryRun: false, force: false, only: [], file: 'catalog/catalog.txt', delay: 750 };
+const flags = { dryRun: false, force: false, publish: false, only: [], file: 'catalog/catalog.txt', delay: 750 };
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (a === '--dry-run') flags.dryRun = true;
   else if (a === '--force') flags.force = true;
+  else if (a === '--publish') flags.publish = true;
   else if (a === '--only') flags.only.push(argv[++i]);
   else if (a === '--file') flags.file = argv[++i];
   else if (a === '--delay') flags.delay = parseInt(argv[++i], 10);
@@ -121,6 +123,7 @@ for (const section of activeSections) {
       expectedBrand: section.brand,
       dryRun: flags.dryRun,
       force: flags.force,
+      publish: flags.publish,
       seen,
     });
     results.push({ brandSection: section.brand, line: entry.line, ...r });

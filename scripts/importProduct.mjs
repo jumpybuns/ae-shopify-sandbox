@@ -30,13 +30,14 @@ import { importAeProduct, extractAeId } from '../src/catalogImporter.js';
 
 const argv = process.argv.slice(2);
 let target = null;
-const opts = { expectedBrand: null, dryRun: false, force: false };
+const opts = { expectedBrand: null, dryRun: false, force: false, publish: false };
 
 for (let i = 0; i < argv.length; i++) {
   const a = argv[i];
   if (a === '--brand') opts.expectedBrand = argv[++i];
   else if (a === '--dry-run') opts.dryRun = true;
   else if (a === '--force') opts.force = true;
+  else if (a === '--publish') opts.publish = true;
   else if (!target && !a.startsWith('--')) target = a;
   else {
     console.error(`Unknown argument: ${a}`);

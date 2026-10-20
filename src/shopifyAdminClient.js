@@ -394,3 +394,46 @@ export async function listLocations() {
   );
   return data?.locations?.nodes || [];
 }
+
+/**
+ * Id of the "Online Store" sales channel's publication. Needs read_publications.
+ * Cached after the first lookup.
+ */
+let onlineStorePublicationId = null;
+export async function getOnlineStorePublicationId() {
+  if (onlineStorePublicationId) return onlineStorePublicationId;
+  const data = await graphqlRequest(`{ publications(first: 25) { nodes { id name } } }`);
+  const nodes = data.publications.nodes;
+  const found = nodes.find((p) => p.name === 'Online Store');
+  if (!found) {
+    throw new Error(`No "Online Store" publication found. Channels seen: ${nodes.map((n) => n.name).join(', ') || '(none)'}`);
+  }
+  onlineStorePublicationId = found.id;
+  return found.id;
+}
+
+/**
+ * Makes a product visible on the storefront: sets status ACTIVE and publishes
+ * it to the Online Store channel. Needs write_products + write_publications.
+ */
+export async function activateAndPublish(productId) {
+  const publicationId = await getOnlineStorePublicationId();
+  const upd = await graphqlRequest(
+    `mutation($product: ProductUpdateInput!) {
+       productUpdate(product: $product) { product { id } userErrors { field message } }
+     }`,
+    { product: { id: productId, status: 'ACTIVE' } }
+  );
+  if (upd.productUpdate.userErrors.length) {
+    throw new Error(`productUpdate userErrors: ${JSON.stringify(upd.productUpdate.userErrors)}`);
+  }
+  const pub = await graphqlRequest(
+    `mutation($id: ID!, $input: [PublicationInput!]!) {
+       publishablePublish(id: $id, input: $input) { userErrors { field message } }
+     }`,
+    { id: productId, input: [{ publicationId }] }
+  );
+  if (pub.publishablePublish.userErrors.length) {
+    throw new Error(`publishablePublish userErrors: ${JSON.stringify(pub.publishablePublish.userErrors)}`);
+  }
+}
