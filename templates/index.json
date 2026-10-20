@@ -243,7 +243,7 @@
           "static": true,
           "settings": {
             "media_type": "image",
-            "image": "shopify://shop_images/collection__preamp.png",
+            "image": "shopify://shop_images/01-collection_ly-rock_hi-power.png",
             "link": "",
             "video_loop": true,
             "video_autoplay": false,
@@ -331,7 +331,7 @@
                   "type": "text",
                   "name": "t:names.heading",
                   "settings": {
-                    "text": "<h2>Browne Amplication's PROTEIN V4</h2>",
+                    "text": "<h1>LY-ROCK HI POWER Overload Distortion</h1>",
                     "width": "fit-content",
                     "max_width": "normal",
                     "alignment": "left",
@@ -356,7 +356,7 @@
                 "text_WpXhQM": {
                   "type": "text",
                   "settings": {
-                    "text": "<p><strong>New in V4:</strong><br/>The Protein V4 introduces several key updates for even more versatility and tonal control:</p><ul><li>A <strong>3-way hi-cut toggle</strong>, taken from our Carbon V2, allows you to tailor the top end to your amp or preferences</li><li>Three <strong>internal switches</strong> on the Green side:<strong>Low cut</strong> toggle for tightening the low end even moreA <strong>heavier clipping</strong> mode for a more aggressive breakupAn <strong>asymmetrical clipping</strong> option for added harmonic complexity and a slightly rawer edge</li></ul><p>These additions make the Protein more adaptable than ever—whether you're chasing Nashville clarity, smooth breakup, or a harmonically rich lead tone, the V4 is built for your pedal board needs.&nbsp;</p>",
+                    "text": "<p><strong>High-power distortion and overdrive effects</strong> The <strong>LY-ROCK HI POWER Overload Distortion</strong> pedal delivers intense <strong>Distortion</strong> and <strong>OVERDRIVE</strong> tones for aggressive guitar sounds. Perfect for rock and metal players seeking powerful, dynamic audio output.</p>",
                     "width": "100%",
                     "max_width": "normal",
                     "alignment": "left",
@@ -429,12 +429,12 @@
                   "name": "Button",
                   "settings": {
                     "label": "More Details",
-                    "link": "shopify://collections/all",
+                    "link": "shopify://products/ly-rock-fredman-guitar-distortion-effect-pedal-be-od-double-channel-manual-rock-heavy-distortion-pedal-effect-true-bypass",
                     "open_in_new_tab": false,
                     "style_class": "button-custom",
                     "custom_button_background": "{{ settings.color_palette.foreground }}",
                     "custom_button_text": "{{ settings.color_palette.color1 }}",
-                    "custom_button_border": "{{ settings.color_palette.foreground }}",
+                    "custom_button_border": "{{ settings.color_palette.background }}",
                     "link_text_color": "",
                     "width": "fit-content",
                     "custom_width": 100,
