@@ -265,7 +265,7 @@
               "type": "text",
               "name": "Text",
               "settings": {
-                "text": "<p>Featured</p>",
+                "text": "<p>Our Current Favorite</p>",
                 "width": "100%",
                 "max_width": "normal",
                 "alignment": "left",
