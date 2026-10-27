@@ -128,8 +128,17 @@ export async function importAeProduct(inputId, options = {}) {
     if (badCurrency) {
       return skip(`variant priced in ${badCurrency.currencyCode} but the store currency is ${shopCurrency} (set SHOP_CURRENCY if that's wrong); no conversion is done`);
     }
-    if (ae.variants.some((v) => !v.skuAttr)) {
-      return skip('a variant has an empty sku_attr; placeOrder would reject it later');
+    const emptySku = ae.variants.filter((v) => !v.skuAttr);
+    // Exception: a listing with exactly ONE variant and a real sku_id is a
+    // single-SKU item with nothing to choose (confirmed shape: sku_attr "",
+    // id "", no property block, sku_id present). Imported with no_sku_attr.
+    const singleSku = ae.variants.length === 1 && emptySku.length === 1 && emptySku[0].skuId;
+    if (emptySku.length && !singleSku) {
+      return skip(
+        `${emptySku.length} of ${ae.variants.length} variant(s) have an empty sku_attr` +
+        ` (AE sku_id: ${emptySku.map((v) => v.skuId ?? '?').slice(0, 3).join(', ')});` +
+        ' placeOrder needs sku_attr to say which variant to buy. Inspect with: node scripts/inspectSku.mjs ' + aeProductId
+      );
     }
     const prices = ae.variants.map((v) => parseFloat(v.price));
     if (prices.some((p) => !Number.isFinite(p) || p <= 0)) {
@@ -198,9 +207,10 @@ export async function importAeProduct(inputId, options = {}) {
       entries.push({
         ownerId: variantId,
         namespace: 'ae_sync',
-        key: 'sku_attr',
+        // Metafields can't be empty, so a blank sku_attr is recorded as a flag.
+        key: ae.variants[i].skuAttr ? 'sku_attr' : 'no_sku_attr',
         type: 'single_line_text_field',
-        value: ae.variants[i].skuAttr,
+        value: ae.variants[i].skuAttr || 'true',
       });
     }
     for (let i = 0; i < entries.length; i += METAFIELD_BATCH) {

@@ -28,6 +28,7 @@ async function enrichLineItems(lineItems) {
       // and reject it as PermanentError/UNMAPPED_ITEM, not this function.
       aeProductId: mapping?.aeProductId,
       aeSkuAttr: mapping?.aeSkuAttr,
+      aeNoSkuAttr: mapping?.aeNoSkuAttr,
     });
   }
   return enriched;

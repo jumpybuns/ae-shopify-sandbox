@@ -107,7 +107,9 @@ async function callApi(method, businessParams) {
 }
 
 function assertMapped(lineItems) {
-  const unmapped = lineItems.find((li) => !li.aeProductId || !li.aeSkuAttr);
+  // aeNoSkuAttr = single-variant listing that AliExpress returns with an empty
+  // sku_attr; allowed, and sent without sku_attr (optional in ae_sdk's types).
+  const unmapped = lineItems.find((li) => !li.aeProductId || (!li.aeSkuAttr && !li.aeNoSkuAttr));
   if (unmapped) {
     throw new PermanentError(
       `line item missing AliExpress product mapping (aeProductId/aeSkuAttr): ${JSON.stringify(unmapped)}`,
@@ -139,7 +141,7 @@ export async function placeOrder({ shopifyOrderId, lineItems, address }) {
     product_items: JSON.stringify(
       lineItems.map((li) => ({
         product_id: li.aeProductId,
-        sku_attr: li.aeSkuAttr,
+        ...(li.aeSkuAttr ? { sku_attr: li.aeSkuAttr } : {}),
         product_count: li.quantity,
       }))
     ),
@@ -306,6 +308,8 @@ export async function getProductDetails(aeProductId) {
 
     return {
       skuAttr,
+      skuId: sku.sku_id != null ? String(sku.sku_id) : null,
+      raw: sku, // unmodified AE sku object, for scripts/inspectSku.mjs
       price,
       listPrice: sku.sku_price,
       offerPrice: sku.offer_sale_price,

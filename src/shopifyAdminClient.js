@@ -306,6 +306,7 @@ export async function getAeMappingForVariant(variantId) {
     `query GetAeMapping($id: ID!) {
       productVariant(id: $id) {
         skuAttr: metafield(namespace: "ae_sync", key: "sku_attr") { value }
+        noSkuAttr: metafield(namespace: "ae_sync", key: "no_sku_attr") { value }
         product {
           productId: metafield(namespace: "ae_sync", key: "product_id") { value }
         }
@@ -317,11 +318,16 @@ export async function getAeMappingForVariant(variantId) {
   const aeProductId = data?.productVariant?.product?.productId?.value;
   const aeSkuAttr = data?.productVariant?.skuAttr?.value;
 
-  if (!aeProductId || !aeSkuAttr) {
+  // A single-variant AliExpress listing with nothing to choose can come back
+  // with an empty sku_attr. The importer marks those variants no_sku_attr=true
+  // (a metafield can't hold an empty string) instead of writing sku_attr.
+  const aeNoSkuAttr = data?.productVariant?.noSkuAttr?.value === 'true';
+
+  if (!aeProductId || (!aeSkuAttr && !aeNoSkuAttr)) {
     return null; // caller decides how to handle an unmapped variant
   }
 
-  return { aeProductId, aeSkuAttr };
+  return { aeProductId, aeSkuAttr, aeNoSkuAttr };
 }
 
 /**
