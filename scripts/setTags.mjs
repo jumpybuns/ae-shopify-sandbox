@@ -57,7 +57,7 @@ const LIST = `
 const UPDATE = `
   mutation($product: ProductUpdateInput!) {
     productUpdate(product: $product) {
-      product { id tag }
+      product { id tags }
       userErrors { field message }
     }
   }`;
@@ -82,15 +82,15 @@ if (notInCatalog.length) {
   for (const p of notInCatalog.slice(0, 10)) console.log(`  ${p.title.slice(0, 70)}  (AE ${p.mapped.value}, vendor "${p.vendor}")`);
   if (notInCatalog.length > 10) console.log(`  ...and ${notInCatalog.length - 10} more`);
 }
-console.log();
 
 let ok = 0, failed = 0;
 for (const p of todo) {
   const tags = brandById.get(p.mapped.value);
-  console.log(`- "${p.vendor}" => "${brand}"   ${p.title.slice(0, 60)}`);
+  console.log('sets tags', tags);
+  // console.log(`- "${p.vendor}" => "${brand}"   ${p.title.slice(0, 60)}`);
   if (!apply) continue;
   try {
-    const d = await graphqlRequest(UPDATE, { product: { id: p.id, vendor: brand, tag: tags } });
+    const d = await graphqlRequest(UPDATE, { product: { id: p.id, tags: subjectParts } });
     const errs = d.productUpdate.userErrors;
     if (errs.length) throw new Error(JSON.stringify(errs));
     ok++;

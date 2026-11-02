@@ -231,6 +231,7 @@ export async function createOrUpdateProduct(product) {
         title: product.title,
         descriptionHtml: product.descriptionHtml || '',
         ...(product.vendor ? { vendor: product.vendor } : {}),
+        ...(product.tags?.length ? { tags: product.tags } : {}),
         status: 'DRAFT', // review before publishing — don't go live sight-unseen
         files: (product.images || []).map((url) => ({
           originalSource: url,

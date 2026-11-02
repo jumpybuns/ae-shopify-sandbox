@@ -1,0 +1,28 @@
+# Keyword rules for product tags (used by scripts/syncProducts.mjs and the importer).
+# Format:  Tag: keyword, keyword, ...
+# A product gets the tag when any keyword appears as a whole word, in any case,
+# in its title or description. This is a STARTER LIST: edit it to your taxonomy.
+# Tags are only ever added, never removed from a product.
+
+Delay: delay, echo
+Reverb: reverb, reverberation
+Overdrive: overdrive, overdriven
+Distortion: distortion
+Fuzz: fuzz
+Boost: boost, booster
+Chorus: chorus
+Phaser: phaser
+Flanger: flanger
+Tremolo: tremolo
+Wah: wah
+Compressor: compressor, compression
+Looper: looper, loop
+Octave: octave
+Pitch Shifter: pitch shifter, pitch shifting
+Noise Gate: noise gate
+Preamp: preamp, pre-amp
+Amp Simulator: amp sim, amp simulator, cab sim, cabinet simulator, IR loader
+Tuner: tuner
+Multi-Effects: multi-effects, multi effects, multieffects
+Equalizer: equalizer, EQ
+Power Supply: power supply

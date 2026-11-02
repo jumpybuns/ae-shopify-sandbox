@@ -17,26 +17,19 @@ const id = extractAeId(argv.find((a) => !a.startsWith('--')));
 const outIdx = argv.indexOf('--out');
 const result = await getRawProduct(id);
 const subject = result.ae_item_base_info_dto?.subject;
+
 let productName = "";
 let subjectParts = [];  // The first part of the subject is the product name.
-let tagArray = [];
-if (subject) {
 
+if (subject) {
   productName = subject.split(" ")[0];
   subjectParts = subject.split(" ");
-
 } else {
-
   productName = id;
   subjectParts = [id];
 }
-subjectParts.map((string)=> {
-  if (string !== "") {
-    tagArray.push(string);
-  }
-});
 
-console.log(tagArray);
+console.log('subjectParts', subjectParts);
 const out = outIdx >= 0 ? argv[outIdx + 1] : `docs/ae-${productName.replace(/ /g, "-")}.md`;
 const rows = new Map(); // path -> { types:Set, example }
 function sample(v) {

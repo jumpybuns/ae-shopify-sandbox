@@ -16,6 +16,11 @@
 import { getProductDetails } from './aeClient/aliexpressClient.js';
 import { createOrUpdateProduct, setMetafields, findProductByAeId, activateAndPublish } from './shopifyAdminClient.js';
 import { shortTitle, descriptionFromTitle } from './productText.js';
+import { normalizeBrand, brandMatches, extractAeId } from './catalogUtil.js';
+import { loadTagRules, buildTags } from './tagRules.js';
+
+// Re-exported so existing imports from catalogImporter.js keep working.
+export { normalizeBrand, brandMatches, extractAeId };
 
 // Shopify's variants(first:) page limit — the importer reads variants back
 // from the productSet response, so more than this can't be mapped in one go.
@@ -24,35 +29,6 @@ const MAX_VARIANTS = 250;
 const METAFIELD_BATCH = 25;
 // Shopify's product title limit.
 const MAX_TITLE = 255;
-
-/** "M-VAVE", "m‑vave" (non-breaking hyphen!) and "MVave" all normalize alike. */
-export function normalizeBrand(s) {
-  return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
-/**
- * Loose match between the brand you asked for and AliExpress's "Brand Name"
- * property (e.g. expected "Mooer", actual "MOOER Audio" -> match). The
- * reverse direction (actual contained in expected) only counts for 3+ chars
- * so a one- or two-letter brand value can't match everything.
- */
-export function brandMatches(expected, actual) {
-  const e = normalizeBrand(expected);
-  const a = normalizeBrand(actual);
-  if (!e || !a) return false;
-  return a.includes(e) || (a.length >= 3 && e.includes(a));
-}
-
-/**
- * Accepts a bare numeric id or a product URL and returns the id string, or
- * null if it can't find one. Handles /item/<id>.html and ?productId=<id>.
- */
-export function extractAeId(text) {
-  const s = String(text || '').trim();
-  if (/^\d{6,}$/.test(s)) return s;
-  const m = s.match(/\/item\/(\d{6,})(?:\.html)?/) || s.match(/[?&]productId=(\d{6,})/i);
-  return m ? m[1] : null;
-}
 
 function truncateTitle(title) {
   const t = String(title || '').trim();
@@ -88,6 +64,9 @@ export async function importAeProduct(inputId, options = {}) {
 
   try {
     const markup = parseMarkup();
+    // Loaded before anything is created, so a malformed rules file fails the
+    // product up front instead of after it already exists in Shopify.
+    const tagRules = loadTagRules();
     const shopCurrency = process.env.SHOP_CURRENCY || 'USD';
 
     const ae = await getProductDetails(inputId);
@@ -174,7 +153,11 @@ export async function importAeProduct(inputId, options = {}) {
     const shopifyProduct = await createOrUpdateProduct({
       title: truncateTitle(shortTitle(ae.title)),
       descriptionHtml: descriptionFromTitle(ae.title),
-      vendor: ae.vendorName || undefined,
+      // Vendor: the catalog [Brand] header when importing from a catalog (reliable),
+      // else the first word of the AliExpress title (ae.vendorName, a heuristic),
+      // else Shopify's default.
+      vendor: expectedBrand || ae.vendorName || undefined,
+      tags: buildTags(expectedBrand, `${ae.title}`, tagRules),
       images: ae.images,
       optionName: 'Style',
       variants: ae.variants.map((v, i) => ({
@@ -199,6 +182,17 @@ export async function importAeProduct(inputId, options = {}) {
         value: aeProductId,
       },
     ];
+    // Baseline for scripts/syncProducts.mjs: what was written at creation, so a
+    // later hand edit of the vendor is detected rather than overwritten.
+    if (expectedBrand) {
+      entries.push({
+        ownerId: shopifyProduct.id,
+        namespace: 'ae_sync',
+        key: 'synced',
+        type: 'json',
+        value: JSON.stringify({ vendor: expectedBrand }),
+      });
+    }
     const returned = new Map(shopifyProduct.variants.nodes.map((n) => [n.sku, n.id]));
     for (let i = 0; i < ae.variants.length; i++) {
       const variantId = returned.get(skuFor(i));

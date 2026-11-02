@@ -25,6 +25,7 @@ import 'dotenv/config';
 import fs from 'node:fs';
 import path from 'node:path';
 import { importAeProduct, extractAeId, normalizeBrand } from '../src/catalogImporter.js';
+import { parseCatalog } from '../src/catalogFile.js';
 
 // --- args --------------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -45,36 +46,6 @@ for (let i = 0; i < argv.length; i++) {
 if (!Number.isFinite(flags.delay) || flags.delay < 0) {
   console.error('--delay needs a non-negative number of milliseconds');
   process.exit(2);
-}
-
-// --- parse the catalog file --------------------------------------------
-function parseCatalog(filePath) {
-  const text = fs.readFileSync(filePath, 'utf8');
-  const sections = []; // { brand, entries: [{ raw, id, line }] }
-  let current = null;
-
-  text.split(/\r?\n/).forEach((rawLine, idx) => {
-    const lineNo = idx + 1;
-    const line = rawLine.replace(/\s+#.*$/, '').trim();
-    if (!line || line.startsWith('#')) return;
-
-    const header = line.match(/^\[(.+)\]$/);
-    if (header) {
-      current = { brand: header[1].trim(), entries: [] };
-      sections.push(current);
-      return;
-    }
-    if (!current) {
-      throw new Error(`${filePath}:${lineNo}: "${line}" appears before any [Brand] header`);
-    }
-    const id = extractAeId(line);
-    if (!id) {
-      throw new Error(`${filePath}:${lineNo}: couldn't find a product id in "${line}"`);
-    }
-    current.entries.push({ raw: line, id, line: lineNo });
-  });
-
-  return sections;
 }
 
 let sections;

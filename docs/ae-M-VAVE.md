@@ -1,6 +1,6 @@
 # aliexpress.ds.product.get: observed shape
 
-Product 3256808061738853, fetched 2026-10-31. Types and one example per field; text trimmed.
+Product 3256808061738853, fetched 2026-11-02. Types and one example per field; text trimmed.
 
 | Path | Type | Example |
 |---|---|---|
@@ -8,13 +8,13 @@ Product 3256808061738853, fetched 2026-10-31. Types and one example per field; t
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o` | array |  |
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[]` | object |  |
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].sku_attr` | string | `"14:29#MINI-Universe"` |
-| `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].offer_sale_price` | string | `"37.99"` |
+| `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].offer_sale_price` | string | `"31.99"` |
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].sku_id` | string | `"12000044371331165"` |
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].price_include_tax` | boolean | `false` |
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].currency_code` | string | `"USD"` |
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].sl_related_skuId` | number | `12000056771364364` |
-| `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].sku_price` | string | `"76.02"` |
-| `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].offer_bulk_sale_price` | string | `"37.99"` |
+| `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].sku_price` | string | `"76.17"` |
+| `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].offer_bulk_sale_price` | string | `"31.99"` |
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].sku_available_stock` | number | `6` |
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].id` | string | `"14:29#MINI-Universe"` |
 | `ae_item_sku_info_dtos.ae_item_sku_info_d_t_o[].ae_sku_property_dtos` | object |  |
@@ -45,7 +45,7 @@ Product 3256808061738853, fetched 2026-10-31. Types and one example per field; t
 | `ae_item_base_info_dto.mobile_detail` | string | `"{\"version\":\"2.0.0\",\"moduleList\":[{\"type\":\"text\"..."` |
 | `ae_item_base_info_dto.subject` | string | `"M-VAVE Mini Universe Electric Guitar Digital Re..."` |
 | `ae_item_base_info_dto.evaluation_count` | string | `"59"` |
-| `ae_item_base_info_dto.sales_count` | string | `"385"` |
+| `ae_item_base_info_dto.sales_count` | string | `"390"` |
 | `ae_item_base_info_dto.sl_related_product_id` | number | `1005011821295015` |
 | `ae_item_base_info_dto.product_status_type` | string | `"onSelling"` |
 | `ae_item_base_info_dto.avg_evaluation_rating` | string | `"5.0"` |
