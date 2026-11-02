@@ -204,7 +204,7 @@ export async function createFulfillment(fulfillmentOrderId, { trackingNumber, ca
  * confirmed to work on any owner type (Product or ProductVariant).
  *
  * `product` shape:
- *   { title, descriptionHtml?, images: string[], optionName: string,
+ *   { title, descriptionHtml?, vendor?, images: string[], optionName: string,
  *     variants: [{ optionValue, price, sku, inventoryQuantity }] }
  */
 export async function createOrUpdateProduct(product) {
@@ -230,6 +230,7 @@ export async function createOrUpdateProduct(product) {
       input: {
         title: product.title,
         descriptionHtml: product.descriptionHtml || '',
+        ...(product.vendor ? { vendor: product.vendor } : {}),
         status: 'DRAFT', // review before publishing — don't go live sight-unseen
         files: (product.images || []).map((url) => ({
           originalSource: url,

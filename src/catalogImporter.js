@@ -174,6 +174,7 @@ export async function importAeProduct(inputId, options = {}) {
     const shopifyProduct = await createOrUpdateProduct({
       title: truncateTitle(shortTitle(ae.title)),
       descriptionHtml: descriptionFromTitle(ae.title),
+      vendor: ae.vendorName || undefined,
       images: ae.images,
       optionName: 'Style',
       variants: ae.variants.map((v, i) => ({

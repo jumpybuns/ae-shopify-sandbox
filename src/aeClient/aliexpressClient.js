@@ -334,6 +334,13 @@ export async function getProductDetails(aeProductId) {
   const properties = extractNestedArray(result.ae_item_properties, 'ae_item_property');
   const brandProp = properties.find((p) => String(p.attr_name || '').toLowerCase() === 'brand name');
 
+  // First word of the listing subject (e.g. "MOSKY" from "MOSKY DTC 4-in-1
+  // Electric Guitar...") — AliExpress listings commonly lead with the
+  // brand/vendor name here. This is a heuristic, separate from the
+  // "Brand Name" item property above (brandProp), which isn't always
+  // present; used as the Shopify product's vendor field.
+  const vendorName = baseInfo.subject ? String(baseInfo.subject).trim().split(/\s+/)[0] : null;
+
   return {
     // The id AliExpress itself reports for this product. Usually identical
     // to the id you asked for, but the response also carries a
@@ -343,8 +350,26 @@ export async function getProductDetails(aeProductId) {
     title: baseInfo.subject,
     categoryId: baseInfo.category_id,
     brand: brandProp?.attr_value ? String(brandProp.attr_value) : null,
+    vendorName,
     storeName: result.ae_store_info?.store_name ?? null,
     images,
     variants,
   };
+}
+
+/**
+ * The unmodified `result` object from aliexpress.ds.product.get, for
+ * scripts/dumpAeShape.mjs. Same call getProductDetails() makes.
+ */
+export async function getRawProduct(aeProductId) {
+  const method = process.env.AE_PRODUCT_DETAILS_METHOD || 'aliexpress.ds.product.get';
+  const data = await callApi(method, {
+    product_id: aeProductId,
+    ship_to_country: process.env.AE_SHIP_TO_COUNTRY || 'US',
+  });
+  const envelope = data?.aliexpress_ds_product_get_response;
+  if (!envelope?.result) {
+    throw new Error(`no result in response: ${JSON.stringify(data).slice(0, 300)}`);
+  }
+  return envelope.result;
 }
