@@ -11,18 +11,19 @@ Distortion: distortion
 Fuzz: fuzz
 Boost: boost, booster
 Chorus: chorus
-Phaser: phaser
-Flanger: flanger
+Phaser: phaser, phase
+Flanger: flanger, flange
 Tremolo: tremolo
 Wah: wah
-Compressor: compressor, compression
-Looper: looper, loop
+Limiter: limiter, squash, limit
+Compressor: compressor, compression, comp
+Looper: looper, loop, drum machine, rhythm
 Octave: octave
-Pitch Shifter: pitch shifter, pitch shifting
-Noise Gate: noise gate
+Pitch Shifter: pitch shifter, pitch shifting, octave
+Noise Gate: noise gate, gate
 Preamp: preamp, pre-amp
 Amp Simulator: amp sim, amp simulator, cab sim, cabinet simulator, IR loader
 Tuner: tuner
 Multi-Effects: multi-effects, multi effects, multieffects
-Equalizer: equalizer, EQ
+Equalizer: equalizer, EQ, graphic
 Power Supply: power supply
