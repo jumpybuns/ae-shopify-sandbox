@@ -18,6 +18,7 @@ import { createOrUpdateProduct, setMetafields, findProductByAeId, activateAndPub
 import { shortTitle, descriptionFromTitle } from './productText.js';
 import { normalizeBrand, brandMatches, extractAeId } from './catalogUtil.js';
 import { loadTagRules, buildTags, stripHtml } from './tagRules.js';
+import { markedUpPrice } from './pricing.js';
 
 // Re-exported so existing imports from catalogImporter.js keep working.
 export { normalizeBrand, brandMatches, extractAeId };
@@ -162,7 +163,7 @@ export async function importAeProduct(inputId, options = {}) {
       optionName: 'Style',
       variants: ae.variants.map((v, i) => ({
         optionValue: labels[i],
-        price: (parseFloat(v.price) * markup).toFixed(2),
+        price: markedUpPrice(v.price, markup),
         sku: skuFor(i),
         inventoryQuantity: v.stock || 0,
       })),
