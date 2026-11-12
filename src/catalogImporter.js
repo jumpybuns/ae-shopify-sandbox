@@ -17,7 +17,7 @@ import { getProductDetails } from './aeClient/aliexpressClient.js';
 import { createOrUpdateProduct, setMetafields, findProductByAeId, activateAndPublish } from './shopifyAdminClient.js';
 import { shortTitle, descriptionFromTitle } from './productText.js';
 import { normalizeBrand, brandMatches, extractAeId } from './catalogUtil.js';
-import { loadTagRules, buildTags } from './tagRules.js';
+import { loadTagRules, buildTags, stripHtml } from './tagRules.js';
 
 // Re-exported so existing imports from catalogImporter.js keep working.
 export { normalizeBrand, brandMatches, extractAeId };
@@ -152,12 +152,12 @@ export async function importAeProduct(inputId, options = {}) {
     const skuFor = (i) => `AE-${aeProductId}-${i}`;
     const shopifyProduct = await createOrUpdateProduct({
       title: truncateTitle(shortTitle(ae.title)),
-      descriptionHtml: descriptionFromTitle(ae.title),
+      descriptionHtml: ae.descriptionHtml || descriptionFromTitle(ae.title),
       // Vendor: the catalog [Brand] header when importing from a catalog (reliable),
       // else the first word of the AliExpress title (ae.vendorName, a heuristic),
       // else Shopify's default.
       vendor: expectedBrand || ae.vendorName || undefined,
-      tags: buildTags(expectedBrand, `${ae.title}`, tagRules),
+      tags: buildTags(expectedBrand, `${ae.title} ${stripHtml(ae.descriptionHtml)}`, tagRules),
       images: ae.images,
       optionName: 'Style',
       variants: ae.variants.map((v, i) => ({

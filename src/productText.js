@@ -35,8 +35,45 @@ export function shortTitle(full) {
 const esc = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** The full original title as description HTML. */
+/** The full original title as description HTML. Used when a listing has no detail body. */
 export function descriptionFromTitle(full) {
   const t = String(full || '').replace(/\s+/g, ' ').trim();
   return t ? `<p>${esc(t)}</p>` : '';
+}
+
+function plainText(html) {
+  return String(html || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * AliExpress `detail` is HTML written for their product page. Keep the
+ * markup Shopify can store, and drop embedded script, SVG, and event handlers.
+ */
+export function sanitizeDescriptionHtml(html) {
+  let s = String(html || '');
+  if (!s.trim()) return '';
+  s = s.replace(/<(script|style|iframe|object|embed|svg|foreignObject)\b[^>]*>[\s\S]*?<\/\1>/gi, '');
+  s = s.replace(/<\/?(?:script|style|iframe|object|embed|svg|foreignObject|link|meta|base)\b[^>]*>/gi, '');
+  s = s.replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+  s = s.replace(/(\s(?:href|src|xlink:href)\s*=\s*)(['"])\s*javascript:[^'"]*\2/gi, '$1$2$2');
+  return s.trim();
+}
+
+/**
+ * True when the Shopify description is still the importer's placeholder:
+ * empty, or a paragraph whose text is the AliExpress title.
+ */
+export function isTitlePlaceholder(descriptionHtml, fullTitle) {
+  const current = plainText(descriptionHtml);
+  if (!current) return true;
+  return current === plainText(fullTitle);
 }

@@ -24,6 +24,7 @@
 import { signRequest } from './signing.js';
 import { TransientError, PermanentError } from './errors.js';
 import { getValidAccessToken } from './aeAuth.js';
+import { sanitizeDescriptionHtml } from '../productText.js';
 
 const API_BASE = process.env.AE_API_BASE_URL || 'https://api-sg.aliexpress.com/sync';
 
@@ -348,6 +349,9 @@ export async function getProductDetails(aeProductId) {
     // that need a stable key should prefer this over their own input.
     productId: baseInfo.product_id != null ? String(baseInfo.product_id) : String(aeProductId),
     title: baseInfo.subject,
+    // Listing body. AliExpress names it `detail`; it is already HTML.
+    // Empty when the listing has no body, so callers can fall back to the title.
+    descriptionHtml: sanitizeDescriptionHtml(baseInfo.detail),
     categoryId: baseInfo.category_id,
     brand: brandProp?.attr_value ? String(brandProp.attr_value) : null,
     vendorName,
